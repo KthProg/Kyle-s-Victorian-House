@@ -1,0 +1,270 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html style="cursor: crosshair;">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <title>Seventh Column Home Page</title>
+  <script>
+
+    //Hide status bar msg II script- by javascriptkit.com
+    //Visit JavaScript Kit (http://javascriptkit.com) for script
+    //Credit must stay intact for use
+
+    function hidestatus() {
+      window.status = ''
+      return true
+    }
+
+    if (document.layers)
+      document.captureEvents(Event.MOUSEOVER | Event.MOUSEOUT)
+
+    document.onmouseover = hidestatus
+    document.onmouseout = hidestatus
+  </script>
+
+
+  <meta http-equiv="GENERATOR" content="Created with Trellix Web, HTML Exporter 2.6.2382">
+  <!-- MAP_LOCATION=( 79, 16) -->
+  <meta content="Microsoft FrontPage 4.0" name="GENERATOR">
+  <style type="text/css" id="operaUserStyle"></style>
+  <link rel="stylesheet" type="text/css" href="assets/styles.css">
+</head>
+
+<body text="#f7f7ff" vlink="#ff9966" alink="#009d74" link="#ffcc99" bgcolor="#000000" background="assets/bg22[1].jpg">
+  <table cellspacing="0" cellpadding="0" width="100%" border="0" vspace="0" hspace="0">
+    <tbody>
+      <tr>
+        <td width="12" height="12"></td>
+        <td width="100%"></td>
+        <td width="12" height="12"></td>
+      </tr>
+      <tr>
+        <td valign="top" align="left" width="12"><img style="CURSOR: crosshair" height="1" hspace="0"
+            src="assets/1x1.gif" width="12" align="bottom" border="0"></td>
+        <td>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" vspace="0" hspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle"><img src="assets/cooltext41211333[1].gif" border="1" width="619" height="110">
+                  </td>
+                </tr>
+
+                <tr>
+                  <td height="11"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" vspace="0" hspace="0" height="213" width="175">
+              <tbody>
+                <tr>
+                  <script language="JavaScript1.2">
+                    // Original:  Dragos Saracu (smardoi@yahoo.com) -->
+                    // Cross Browser by: Bob Simpson(webmaster@maryjanebrown.net) -->
+                    // Contributor URL: http://www.maryjanebrown.net/webmaster -->
+
+                    // This script and many more are available free online at-- >
+                    // The JavaScript Source!! http://javascript.internet.com -->
+
+                    // Begin
+                    function BrowserCheck() {
+                      var b = navigator.appName; if (b == "Netscape") this.b = "NS"
+                        ; else if (b == "Microsoft Internet Explorer") this.b = "IE"; else this.b = b;
+                      this.v = parseInt(navigator.appVersion); this.NS = (this.b == "NS" && this.v >= 4);
+                      this.NS4 = (this.b == "NS" && this.v == 4);
+                      this.NS5 = (this.b == "NS" && this.v == 5);
+                      this.IE = (this.b == "IE" && this.v >= 4);
+                      this.IE4 = (navigator.userAgent.indexOf('MSIE 4') > 0);
+                      this.IE5 = (navigator.userAgent.indexOf('MSIE 5') > 0);
+                      if (this.IE5 || this.NS5) this.VER5 = true;
+                      if (this.IE4 || this.NS4) this.VER4 = true;
+                      this.OLD = (!this.VER5 && !this.VER4) ? true : false;
+                      this.min = (this.NS || this.IE);
+                    }
+                    is = new BrowserCheck();
+                    // End -->
+                  </script>
+
+                  <!-- STEP TWO: Copy this code into the BODY of your HTML document  -->
+                  <td height="192" width="157" align="left">
+                    <div id="staticBall" style="position:relative;visibility:visible">
+                      <img src="assets/ball.gif" height="30" width="30" alt="Static ball">
+                    </div>
+                    <div id="ball" style="visibility:hidden; position:absolute; left:100; top:10; height:34; width:34">
+                      <img src="assets/ball.gif" height="30" width="30" alt="Bouncing ball">
+                    </div>
+
+                    <script language="Javascript1.2">
+                      // Begin
+                      iter = 0;
+                      setId = 0;
+                      down = true;
+                      up = false;
+                      bouncingBall = (is.VER5) ? document.getElementById("ball").style
+                        : (is.NS) ? document.layers["ball"]
+                          : document.all["ball"].style;
+                      stillBall = (is.VER5) ? document.getElementById("staticBall").style
+                        : (is.NS) ? document.layers["staticBall"] : document.all["staticBall"].style;
+                      winH = (is.NS) ? window.innerHeight - 55 : document.body.offsetHeight - 55;
+                      document.onmouseup = buttonUp;
+                      if (is.NS4)
+                        document.captureEvents(Event.MOUSEUP);
+                      function buttonUp(e) {
+                        if (((is.NS) ? e.which : event.button) != 1) return true;
+                        if (setId != 0) clearInterval(setId);
+                        bouncingBall.visibility = "visible";
+                        stillBall.visibility = "hidden";
+                        bouncingBall.left = (is.NS) ? e.pageX - 15 : event.offsetX - 15;
+                        bouncingBall.top = (is.NS) ? e.pageY - 15 : event.offsetY - 15;
+                        iter = 0;
+                        setId = setInterval("generateGravity()", 20);
+                        return true;
+                      }
+                      function generateGravity() {
+                        if ((parseInt(bouncingBall.top) + iter < winH) && down) {
+                          bouncingBall.top = parseInt(bouncingBall.top) + iter;
+                          iter++;
+                          return;
+                        }
+                        else {
+                          if ((parseInt(bouncingBall.top) < winH) && down) {
+                            bouncingBall.top = winH + 5;
+                            return;
+                          }
+                          down = false;
+                          up = true;
+                          if (iter < 0 && parseInt(bouncingBall.top) > winH) {
+                            clearInterval(setId);
+                            bouncingBall.visibility = "hidden";
+                            stillBall.visibility = "visible";
+                            setId = 0;
+                          }
+                          if (parseInt(bouncingBall.top) > 0 && up && iter >= 0) {
+                            bouncingBall.top = parseInt(bouncingBall.top) - iter;
+                            iter--;
+                            if (iter % 3 == 0) iter--;
+                            return;
+                          }
+                          down = true;
+                          up = false;
+                        }
+                      }
+                      // End -->
+                    </script>
+                    <div align="center">
+                      <p align="left"><a title="House" style="CURSOR: crosshair" href="house.htm"><img border="0"
+                            src="assets/button_house.png" width="157" height="27"></a>
+                        <font face="Arial,Helvetica,sans-serif" color="#ffffcc" size="3"><u><a title="Parking"
+                              style="CURSOR: crosshair" href="parking.htm" target="_top"><img style="CURSOR: crosshair"
+                                height="27" src="assets/button_parking.png" width="139" align="bottom"
+                                border="0"></a></u></font><a style="CURSOR: crosshair" href="events.htm"><img border="0"
+                            src="assets/button_events.png" width="139" height="27"></a><a style="CURSOR: crosshair"
+                          href="about.htm"><img border="0" src="assets/button_wtf.png" width="139" height="27"></a>
+                      </p>
+                    </div>
+                    <div align="center">&nbsp;</div>
+                  </td>
+                  <td valign="top" align="left" width="14" height="192"><img style="CURSOR: crosshair" height="1"
+                      hspace="0" src="assets/saved_resource" width="12" align="bottom" border="0"></td>
+                </tr>
+                <tr>
+                  <td width="157" height="21" align="left"></td>
+                  <td width="14" height="21"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <p align="center">
+    <font size="1"><a href="http://foxxcomm.com/"><img height="33"
+          alt="Foxxcomm, Inc. Website and Multimedia design for small and artistic business" src="assets/foxxcomm4.jpg"
+          width="76" border="2"></a>
+      (c)2005, 2006 Seventh Column &amp; Foxxcomm, Inc.</font>
+  </p>
+
+  <p align="center">
+
+    <script language="JavaScript">
+      //
+
+      // Copyright 2001 by www.CodeBelly.com
+      // Please do *not* remove this notice.
+
+      var backImage = new Array(); // don't change this
+
+      // Enter the image filenames you wish to use.
+      // Follow the pattern to use more images.  The
+      // number in the brackets [] is the number you
+      // will use in the function call to pick each
+      // image.
+
+      // Note how backImage[3] = "" -- which would
+      // set the page to *no* background image.
+
+      // backImage[0] = "643wv8ww2fim9[1].jpg";
+      // backImage[1] = "631sxa70dj9st[1].jpg";
+      // backImage[2] = "2117hw493laltf1.jpg";
+      // backImage[3] = "087141a3.jpg";
+      // backImage[4] = "bg22[1].bmp";
+      // backImage[5] = "";
+
+      backImage[0] = 'assets/bg22[1].jpg';
+      backImage[1] = 'assets/bg22[1].jpg';
+      backImage[2] = 'assets/bg22[1].jpg';
+      backImage[3] = 'assets/bg22[1].jpg';
+      backImage[4] = 'assets/bg22[1].jpg';
+      backImage[5] = 'assets/bg22[1].jpg';
+
+
+      // Do not edit below this line.
+      //-----------------------------
+
+      function changeBGImage(whichImage) {
+        if (document.body) {
+          document.body.background = backImage[whichImage];
+        }
+      }
+
+      //-->
+    </script>
+
+    <a href="javascript:changeBGImage(0)">Lava</a>
+    <a href="javascript:changeBGImage(1)">Liquid Gold</a>
+    <a href="javascript:changeBGImage(2)">Metal</a>
+    <a href="javascript:changeBGImage(3)">Metal Bumps</a>
+    <a href="javascript:changeBGImage(4)">Metal Plates</a>
+    <a href="javascript:changeBGImage(5)">No Background</a>
+
+
+
+
+    <script language="javascript" src="assets/gd01.js.download"></script>
+    <script language="javascript" src="assets/gd01.js.download"></script><!--
+     FILE ARCHIVED ON 03:16:07 Oct 22, 2007 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 23:12:14 Sep 28, 2025.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+    <!--
+playback timings (ms):
+  captures_list: 0.527
+  exclusion.robots: 0.027
+  exclusion.robots.policy: 0.017
+  esindex: 0.009
+  cdx.remote: 8.209
+  LoadShardBlock: 251.634 (3)
+  PetaboxLoader3.resolve: 243.776 (4)
+  PetaboxLoader3.datanode: 156.971 (4)
+  load_resource: 182.634
+-->
+  </p>
+</body>
+
+</html>
