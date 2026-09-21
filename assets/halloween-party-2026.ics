@@ -1,0 +1,11 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Kyle's Victorian House//Halloween Party 2026//EN
+BEGIN:VEVENT
+DTSTART;TZID=America/Detroit:20261010T200000
+DTEND;TZID=America/Detroit:20261011T020000
+SUMMARY:Halloween Party 2026
+DESCRIPTION:Karaoke\, beer pong\, ping pong & cornhole out back\, music (Spotify Jam)\, food & drinks. Plus ones welcome — bring one person you know!
+LOCATION:1147 McKinstry St\, Detroit\, MI 48209
+END:VEVENT
+END:VCALENDAR
