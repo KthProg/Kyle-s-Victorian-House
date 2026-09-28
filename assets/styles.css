@@ -1,6 +1,23 @@
+html {
+  cursor: crosshair;
+}
+
 body {
   max-width: 600px;
   margin: auto;
+  color: #f7f7ff;
+}
+
+a:visited {
+  color: #ff9966;
+}
+
+a:active {
+  color: #009d74;
+}
+
+a {
+  color: #ffcc99;
 }
 
 body > table {
@@ -12,4 +29,7 @@ a[href="index.htm"] > img, img[src="assets/cooltext41211333[1].gif"] {
   height: auto
 }
 
- 
+iframe {
+  width: 100%;
+  border: none;
+}
