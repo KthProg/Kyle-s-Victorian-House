@@ -2,3 +2,14 @@ body {
   max-width: 600px;
   margin: auto;
 }
+
+body > table {
+  table-layout: fixed;
+}
+
+a[href="index.htm"] > img, img[src="assets/cooltext41211333[1].gif"] {
+  width: 100%;
+  height: auto
+}
+
+ 
