@@ -36,6 +36,7 @@ a[href="index.htm"] > img, img[src="assets/cooltext41211333[1].gif"] {
 }
 
 iframe {
+  margin-top: 30px;
   width: 100%;
   border: none;
 }
