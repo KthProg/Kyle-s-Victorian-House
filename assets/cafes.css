@@ -1,0 +1,40 @@
+.cafe-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: x-small;
+}
+.cafe-table th {
+    color: #ffcc99;
+    border-bottom: 1px solid #ffcc99;
+    padding: 4px 8px;
+    text-align: left;
+}
+.cafe-table td {
+    color: #f7f7ff;
+    padding: 3px 8px;
+    vertical-align: top;
+    border-bottom: 1px solid #333;
+}
+.cafe-table td.rating {
+    color: #00ff66;
+    white-space: nowrap;
+    font-weight: bold;
+}
+.cafe-table td.name {
+    color: #ffffcc;
+    white-space: nowrap;
+}
+.section-header {
+    color: #ff6600;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: small;
+    font-weight: bold;
+    margin-top: 12px;
+    margin-bottom: 2px;
+}
+.coming-soon {
+    color: #99ccff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: x-small;
+}
