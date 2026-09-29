@@ -20,6 +20,12 @@ a {
   color: #ffcc99;
 }
 
+a:hover {
+  color: #0000FF;
+  font-family: Arial Black;
+  font-weight: bold
+}
+
 body > table {
   table-layout: fixed;
 }
