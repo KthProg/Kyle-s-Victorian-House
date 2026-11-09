@@ -40,3 +40,33 @@ iframe {
   width: 100%;
   border: none;
 }
+
+/* Handel Gothic font for the nav buttons */
+@font-face {
+  font-family: 'Handel Gothic';
+  src: url(handelgothic.eot);
+  src: url(handelgothic.eot?#iefix) format('embedded-opentype'),
+       url(handelgothic.woff) format('woff'),
+       url(handelgothic.ttf) format('truetype');
+}
+
+/* nav buttons - text on top of the blank button graphic */
+a.navbutton, a.navbutton:visited, a.navbutton:active, a.navbutton:hover {
+  display: block;
+  width: 105px;
+  height: 27px;
+  padding-left: 34px;
+  background: url(button_empty.png) no-repeat;
+  color: #E9E9E9;
+  font-family: 'Handel Gothic', Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 27px;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: crosshair;
+}
+
+a.navbutton:hover {
+  color: #FFFFFF;
+}
