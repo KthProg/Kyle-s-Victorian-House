@@ -83,7 +83,7 @@ The box model is composed of four parts:
 
 <hr>
 
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/box-model-content-1.png"><img src="http://examiningeverything.com/wp-content/uploads/box-model-content-1.png" alt="CSS Box Model Content" width="954" height="384"></a><small>CSS Box Model Content</small></div>
+<div class="post-caption"><a href="images/box-model-content-1.png"><img src="images/box-model-content-1.png" alt="CSS Box Model Content" width="954" height="384"></a><small>CSS Box Model Content</small></div>
 
 In a block element, the content area is determined by:
 <ul>
@@ -100,7 +100,7 @@ It's important to note that inline element's borders, padding, and margins will 
 
 <hr>
 
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/box-model-padding.png"><img src="http://examiningeverything.com/wp-content/uploads/box-model-padding.png" alt="CSS Box Model Padding" width="954" height="384"></a><small>CSS Box Model Padding</small></div>
+<div class="post-caption"><a href="images/box-model-padding.png"><img src="images/box-model-padding.png" alt="CSS Box Model Padding" width="954" height="384"></a><small>CSS Box Model Padding</small></div>
 
 Padding is the space between the border and the edge of the element's content area. You can think of it as a margin between the border and content.
 Background colors only apply to the content area, and padding space.
@@ -108,7 +108,7 @@ Background colors only apply to the content area, and padding space.
 
 <hr>
 
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/box-model-border.png"><img src="http://examiningeverything.com/wp-content/uploads/box-model-border.png" alt="CSS Box Model Border" width="954" height="384"></a><small>CSS Box Model Border</small></div>
+<div class="post-caption"><a href="images/box-model-border.png"><img src="images/box-model-border.png" alt="CSS Box Model Border" width="954" height="384"></a><small>CSS Box Model Border</small></div>
 
 Borders begin immediately outside of the content area, which is essentially all you need to know. This is true for both inline and block elements.
 Background colors apply to all space inside the border.
@@ -116,7 +116,7 @@ Background colors apply to all space inside the border.
 
 <hr>
 
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/box-model-margin.png"><img src="http://examiningeverything.com/wp-content/uploads/box-model-margin.png" alt="CSS Box Model Margin" width="954" height="384"></a><small>CSS Box Model Margin</small></div>
+<div class="post-caption"><a href="images/box-model-margin.png"><img src="images/box-model-margin.png" alt="CSS Box Model Margin" width="954" height="384"></a><small>CSS Box Model Margin</small></div>
 
 Margins begin just outside of the border, and determine the space between it and the elements around it.
 <h3>Box-sizing</h3>
@@ -129,12 +129,12 @@ The CSS box-sizing property can cause exceptions to the above rules. The two val
  	<li>border-box</li>
 </ul>
 <h4>Content-box</h4>
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/box-model-1.png"><img src="http://examiningeverything.com/wp-content/uploads/box-model-1.png" alt="Our original CSS Box" width="954" height="384"></a><small>Our original CSS Box</small></div>
+<div class="post-caption"><a href="images/box-model-1.png"><img src="images/box-model-1.png" alt="Our original CSS Box" width="954" height="384"></a><small>Our original CSS Box</small></div>
 
 Content box is the default value for this property in CSS, and means that elements will behave as shown above. In other words, the content determines height and width, or if set explicitly, the height and width control the size of the content area.
 This means that an element which has a width of 50px with 5px of padding, a 1px border, and 3px of margins would take up 50px + (5px + 1px + 3px) * 2 (two sides) = 68px of width.
 <h4>Border-box</h4>
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/box-model-2.png"><img src="http://examiningeverything.com/wp-content/uploads/box-model-2.png" alt="The same box but using border-box" width="956" height="311"></a><small>The same box but using border-box</small></div>
+<div class="post-caption"><a href="images/box-model-2.png"><img src="images/box-model-2.png" alt="The same box but using border-box" width="956" height="311"></a><small>The same box but using border-box</small></div>
 
 In this case, the width and height, when set, control the size of the element including content, padding and borders. Only the margins are not included.
 This means that an element which has a width of 50px with 5px of margins would take up 50px + 5px * 2 (two sides) = 60px of width,&nbsp;<em>regardless</em> of padding or borders.
@@ -152,7 +152,7 @@ Margin collapsing occurs in 3 basic cases:
  	<li>Empty elements</li>
 </ul>
 <h4>Adjacent sibling elements</h4>
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/adj-sib-margin-collapse.png"><img src="http://examiningeverything.com/wp-content/uploads/adj-sib-margin-collapse.png" alt="Adjacent Siblings Margin Collapse" width="953" height="120"></a><small>Note how the center margin is 15px instead of 30px</small></div>
+<div class="post-caption"><a href="images/adj-sib-margin-collapse.png"><img src="images/adj-sib-margin-collapse.png" alt="Adjacent Siblings Margin Collapse" width="953" height="120"></a><small>Note how the center margin is 15px instead of 30px</small></div>
 
 If two tags are located one after another then their margins will collapse.
 <h4>Parent with first/last child margin collision</h4>

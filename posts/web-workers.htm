@@ -232,9 +232,9 @@ Great! So now we've got our worker script, and our script for the main thread. W
 However, that's not the end of it. In order to run this example without any error message, you will have to set this up under a running web server. Without the web server hosting the page, Chrome and other browsers may throw exceptions because there is no "host".
 Assuming the above is set up, here's what the page will look like. To test the page, click on the button we created. You'll notice that the UI is not being interrupted by our factorization. A message is appended for every button click, while the factorization algorithm runs in the background. The loading indicator continues to update as the factorization continues to run.
 
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/loading.png"><img src="http://examiningeverything.com/wp-content/uploads/loading.png" alt="WebWorker Loading Bar" width="293" height="196"></a><small>WebWorker Loading</small></div>
+<div class="post-caption"><a href="images/loading.png"><img src="images/loading.png" alt="WebWorker Loading Bar" width="293" height="196"></a><small>WebWorker Loading</small></div>
 
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/finished.png"><img src="http://examiningeverything.com/wp-content/uploads/finished.png" alt="WebWorker Finished" width="271" height="191"></a><small>WebWorker Finished</small></div>
+<div class="post-caption"><a href="images/finished.png"><img src="images/finished.png" alt="WebWorker Finished" width="271" height="191"></a><small>WebWorker Finished</small></div>
 <h3>Conclusion</h3>
 WebWorkers provide a very simple but very useful API. They provide a clear benefit by allowing you to run computationally intensive tasks without blocking the UI. This leads to a much better user experience, and to much more interactive pages.
 The factorization process above can be any long-running calculation that is slowing down your application. Rather than forcing the user to wait, simply put your long-running task into its own script, create a web worker, and respond to its messages until it is completed.

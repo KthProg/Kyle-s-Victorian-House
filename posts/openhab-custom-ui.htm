@@ -73,7 +73,7 @@ This article goes through the process of creating a custom UI which can be exten
 <h3>Creating the UI</h3>
 Your UI file structure should be as follows. Everything should be under the <code>org.eclipse.smarthome.ui.new</code> package.
 
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/file-structure.png"><img src="http://examiningeverything.com/wp-content/uploads/file-structure.png" alt="File Structure for openHAB UI" width="197" height="269"></a><small>File Structure for openHAB UI</small></div>
+<div class="post-caption"><a href="images/file-structure.png"><img src="images/file-structure.png" alt="File Structure for openHAB UI" width="197" height="269"></a><small>File Structure for openHAB UI</small></div>
 <h4>NewUIApp.java</h4>
 <code>NewUIApp.java</code> has to take the <code>httpService</code> from OSGi and register its resources at a given location. This is done with the following code.
 <pre><code>package org.eclipse.smarthome.ui.new.internal;
@@ -623,21 +623,21 @@ source.. = src/main/java/
 <h4>Package UI</h4>
 First, you need to run the <code>mvn package</code> command in your base directory to create a package that you can register as a bundle with OSGi. On Windows, you may need to download Maven and extract it, then add it to your PATH. For Linux systems, you can run <code>apt-get install maven</code>. Your output should look like this:
 
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/build-output.png"><img src="http://examiningeverything.com/wp-content/uploads/build-output.png" alt="openHAB UI Build Output" width="961" height="229"></a><small>openHAB UI Build Output</small></div>
+<div class="post-caption"><a href="images/build-output.png"><img src="images/build-output.png" alt="openHAB UI Build Output" width="961" height="229"></a><small>openHAB UI Build Output</small></div>
 <h4>Start openHAB</h4>
 Installing openHAB is relatively easy on both Linux distros and Windows. Just unzip the files provided by openHAB, and run the start script from your shell. For Linux-based systems you may also have to ssh into the openHAB instance by running <code>ssh openhab@localhost</code>. The default password is <code>habopen</code>.
 <h4>Install the bundle</h4>
 The <code>bundle:install</code> command expects a URL, so you will have to type your package file path like so: <code>file://localhost/[root_dir]/org.eclipse.smarthome.ui.new/target/org.eclipse.smarthome.ui.new-SNAPSHOT-[version].jar</code>. Essentially, you provide the full path to the package jar as a file URL to register your new UI bundle.
 
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/install-bundle.png"><img src="http://examiningeverything.com/wp-content/uploads/install-bundle.png" alt="Install OpenHAB Bundle" width="961" height="325"></a><small>Install OpenHAB Bundle</small></div>
+<div class="post-caption"><a href="images/install-bundle.png"><img src="images/install-bundle.png" alt="Install OpenHAB Bundle" width="961" height="325"></a><small>Install OpenHAB Bundle</small></div>
 
 Next, you should call <code>bundle:start "New UI"</code> to start the bundle.
 
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/start-bundle.png"><img src="http://examiningeverything.com/wp-content/uploads/start-bundle.png" alt="Start openHAB UI Bundle" width="263" height="337"></a><small>Start openHAB UI Bundle</small></div>
+<div class="post-caption"><a href="images/start-bundle.png"><img src="images/start-bundle.png" alt="Start openHAB UI Bundle" width="263" height="337"></a><small>Start openHAB UI Bundle</small></div>
 <h4>View the page</h4>
 Because we did not also register a dashboard tile bundle for the front-end, you must navigate directly to the new UI. You can do this by navigating to <code>http://localhost:8080/newui/index.html</code> in your browser. The <code>HttpService</code> that we had injected into our UI by OSGi will then serve up the index page from the location that we registered (<code>web</code> directory).
 
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/view-UI.png"><img src="http://examiningeverything.com/wp-content/uploads/view-UI.png" alt="View openHAB UI" width="347" height="143"></a><small>View openHAB UI</small></div>
+<div class="post-caption"><a href="images/view-UI.png"><img src="images/view-UI.png" alt="View openHAB UI" width="347" height="143"></a><small>View openHAB UI</small></div>
 <h4>Updating the bundle</h4>
 From now on, when you build your package, you only need to call <code>bundle:update "New UI"</code> and it will fetch it from the previous location. You will need to install the new bundle if the version changes, however.
 <h3>Conclusion</h3>

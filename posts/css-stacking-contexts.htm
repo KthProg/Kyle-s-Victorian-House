@@ -74,7 +74,7 @@ There's a reason for this behavior, and that reason is stacking contexts.
 A stacking context is essentially a group of elements whose z-index value determines their position within that group. If two elements do not share a stacking context, then they will ignore each other's z-index values.
 In this case, the stacking order is based on their relative order in the DOM (See image under "Creating a Stack").
 <h3>Creating a Stack</h3>
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/stacking-context.png"><img src="http://examiningeverything.com/wp-content/uploads/stacking-context.png" alt="All of the common stacking context types." width="658" height="465"></a><small>All of the common stacking context types. Order is relative, fixed, absolute, opacity, transform.</small></div>
+<div class="post-caption"><a href="images/stacking-context.png"><img src="images/stacking-context.png" alt="All of the common stacking context types." width="658" height="465"></a><small>All of the common stacking context types. Order is relative, fixed, absolute, opacity, transform.</small></div>
 
 A stacking context is created in the following cases:
 <ul>
@@ -101,19 +101,19 @@ This is a case which is more and more common lately, as CSS transforms become th
 Of course, the most important thing is how to apply this knowledge to create layouts and fix problems in the real world. For this reason, I've supplied some examples of how stacking contexts interact with each other. Most importantly, how do their children determine their z-positioning relative to other stacking context's children?
 Well, using the example from "Creating a Stack", here's what happens:
 <h3>Z-Index Set</h3>
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/stacking-context-z-index-on-relative-children.png"><img src="http://examiningeverything.com/wp-content/uploads/stacking-context-z-index-on-relative-children.png" alt="Z-Index on Relative Element's Children" width="619" height="461"></a><small>Z-Index on Relative Element's Children</small></div>
+<div class="post-caption"><a href="images/stacking-context-z-index-on-relative-children.png"><img src="images/stacking-context-z-index-on-relative-children.png" alt="Z-Index on Relative Element's Children" width="619" height="461"></a><small>Z-Index on Relative Element's Children</small></div>
 
 If we set the z-index of the child elements, the result is the same as our original elements.
 <h3>Z-Index Positive, Position Relative</h3>
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/stacking-context-z-index-on-relative-children-chidlren-are-relative.png"><img src="http://examiningeverything.com/wp-content/uploads/stacking-context-z-index-on-relative-children-chidlren-are-relative.png" alt="Z-Index on Relative Element's Children - Children Are Relatively Positioned" width="636" height="483"></a><small>Z-Index on Relative Element's Children - Children Are Relatively Positioned</small></div>
+<div class="post-caption"><a href="images/stacking-context-z-index-on-relative-children-chidlren-are-relative.png"><img src="images/stacking-context-z-index-on-relative-children-chidlren-are-relative.png" alt="Z-Index on Relative Element's Children - Children Are Relatively Positioned" width="636" height="483"></a><small>Z-Index on Relative Element's Children - Children Are Relatively Positioned</small></div>
 
 If we set the z-index of the child elements to a positive value, but additionally set the children's positions to relative (creating a new stacking context for each child), then they will position completely independently of their parent, moving out in front of the other elements.
 <h3>Z-Index Negative, Position Relative</h3>
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/stacking-context-negative-z-index-on-relative-children-chidlren-are-relative.png"><img src="http://examiningeverything.com/wp-content/uploads/stacking-context-negative-z-index-on-relative-children-chidlren-are-relative.png" alt="Negative Z-Index on Relative Element's Children - Children Are Relatively Positioned" width="615" height="463"></a><small>Negative Z-Index on Relative Element's Children - Children Are Relatively Positioned</small></div>
+<div class="post-caption"><a href="images/stacking-context-negative-z-index-on-relative-children-chidlren-are-relative.png"><img src="images/stacking-context-negative-z-index-on-relative-children-chidlren-are-relative.png" alt="Negative Z-Index on Relative Element's Children - Children Are Relatively Positioned" width="615" height="463"></a><small>Negative Z-Index on Relative Element's Children - Children Are Relatively Positioned</small></div>
 
 If we set the z-index of the child elements to a negative value, but additionally set the position to relative (creating a new stacking context for each child), then they will position completely independently of their parent, moving behind the other elements.
 <h3>Z-Index Greater Than Other Stacking Context's Children</h3>
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/relative-and-fixed-with-set-z-index-children-with-set-z-index.png"><img src="http://examiningeverything.com/wp-content/uploads/relative-and-fixed-with-set-z-index-children-with-set-z-index.png" alt="Relative and Fixed Element with a Set Z-Index, Children With Set Z-Index Values" width="622" height="489"></a><small>Relative and Fixed Element with a Set Z-Index, Children With Set Z-Index Values</small></div>
+<div class="post-caption"><a href="images/relative-and-fixed-with-set-z-index-children-with-set-z-index.png"><img src="images/relative-and-fixed-with-set-z-index-children-with-set-z-index.png" alt="Relative and Fixed Element with a Set Z-Index, Children With Set Z-Index Values" width="622" height="489"></a><small>Relative and Fixed Element with a Set Z-Index, Children With Set Z-Index Values</small></div>
 
 In this case, we have given both the relative element, and the fixed element a z-index. The z-indices of their children do not interact, so even though the relative children are positioned ahead of the fixed children, they do not appear that way. The children are each in separate stacking contexts, though their parents share the same stacking context.
 <h3>Conclusion</h3>

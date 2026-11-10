@@ -75,19 +75,19 @@ There are only a couple steps involved in moving your WordPress installation.
 First, go to the Settings tab on the left side of your WordPress admin page. Then, remove <code>wordpress</code>, or whatever the root directory name is from the URLs in the image below. This should leave you with only the URL of your website (and no trailing slash). Save these settings.
 You may see an error, and your WordPress site is likely to go down until the next step.
 
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/change-dir.png"><img src="http://examiningeverything.com/wp-content/uploads/change-dir.png" alt="Change WordPress Directory" width="762" height="256"></a><small>Change WordPress Directory</small></div>
+<div class="post-caption"><a href="images/change-dir.png"><img src="images/change-dir.png" alt="Change WordPress Directory" width="762" height="256"></a><small>Change WordPress Directory</small></div>
 <h4>Change the Root Directory of Your Apache Installation</h4>
 Now you will need to edit your Apache configuration for enabled sites, and change the root directory for your web server. Open up a terminal window on your Linux installation, or SSH into the server. If you are using Windows, you can download a tool like PuTTy to do the SSH part. The config is usually located in <code>/etc/apache2/sites-enabled</code>, so you can run <code>cd /etc/apache2/sites-enabled</code> to get there.
 
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/edit-config.png"><img src="http://examiningeverything.com/wp-content/uploads/edit-config.png" alt="Edit Config" width="572" height="87"></a><small>Edit Config</small></div>
+<div class="post-caption"><a href="images/edit-config.png"><img src="images/edit-config.png" alt="Edit Config" width="572" height="87"></a><small>Edit Config</small></div>
 
 Now, run <code>nano 000-default.conf</code> and change the following line <code>DocumentRoot /var/www/html/</code> to <code>DocumentRoot /var/www/html/wordpress/</code>, or whatever your root installation directory is.
 
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/change-root.png"><img src="http://examiningeverything.com/wp-content/uploads/change-root.png" alt="Change Root" width="367" height="237"></a><small>Change Root</small></div>
+<div class="post-caption"><a href="images/change-root.png"><img src="images/change-root.png" alt="Change Root" width="367" height="237"></a><small>Change Root</small></div>
 
 Run <code>service apache2 restart</code> to restart your web server, and voila, your WordPress site is now located at the root URL of your website.
 
-<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/restart.png"><img src="http://examiningeverything.com/wp-content/uploads/restart.png" alt="Restart Apache" width="575" height="113"></a><small>Restart Apache</small></div>
+<div class="post-caption"><a href="images/restart.png"><img src="images/restart.png" alt="Restart Apache" width="575" height="113"></a><small>Restart Apache</small></div>
 <h3>Considerations</h3>
 This method only works if you do not have any other websites being served from the root directory, and also mean you will not be able to serve files from the root directory (you'll have to move them into the WordPress directory). If this is not a concern, and you only host a WordPress website, then you should definitely use this method, and it's much easier than other methods out there.
 <h3>Conclusion</h3>
