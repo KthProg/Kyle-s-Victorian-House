@@ -1,0 +1,215 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html style="cursor: crosshair;">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OOP in JavaScript - Tech Blog</title>
+  <meta content="Microsoft FrontPage 4.0" name="GENERATOR">
+  <link rel="stylesheet" type="text/css" href="../assets/styles.css">
+  <link rel="stylesheet" type="text/css" href="../assets/cafes.css">
+  <link rel="stylesheet" type="text/css" href="../assets/blog.css">
+  <script src="../assets/scripts.js"></script>
+</head>
+
+<body style="cursor: crosshair" text="#f7f7ff" vlink="#0000bf" alink="#80c101" link="#00ff00" bgcolor="#000000"
+  background="../assets/bg22[1].jpg">
+  <table cellspacing="0" cellpadding="0" width="100%" border="0" hspace="0" vspace="0">
+    <tbody>
+      <tr>
+        <td width="12" height="12"></td>
+        <td width="100%">
+          <p align="center">
+            <font color="#0000bf"><a href="../index.htm"><img src="../assets/SClogo.gif" align="bottom" border="0" height="153"></a></font>
+          </p>
+        </td>
+        <td width="12" height="12"></td>
+      </tr>
+      <tr>
+        <td valign="top" align="left" width="12"><img style="cursor: crosshair" height="1" hspace="0" src="../assets/1x1.gif" width="12" align="bottom" border="0"></td>
+        <td>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle">&nbsp; <font face="Arial,Helvetica,sans-serif" color="#ffcc99" size="1">&nbsp;&nbsp;&nbsp; </font></td>
+                </tr>
+                <tr>
+                  <td height="11">
+                    <font face="Arial,Helvetica,sans-serif" color="#00ff66" size="1">| <a style="cursor: crosshair" title="House" href="../house.htm" target="_top"><u>House</u></a> | <a style="cursor: crosshair" title="Parking" href="../parking.htm" target="_top"><u>Parking</u></a> | <a style="cursor: crosshair" title="Events" href="../events.htm" target="_top"><u>Events</u></a> | <a style="cursor: crosshair" title="Detroit Events" href="../detroit-events.htm" target="_top"><u>Detroit Events</u></a> | <a style="cursor: crosshair" title="Cafes" href="../cafes.htm" target="_top"><u>Cafes</u></a> | <a style="cursor: crosshair" title="Blogs &amp; Updates" href="../links.htm" target="_top"><u>Blogs &amp; Updates</u></a> | <a style="cursor: crosshair" title="Wtf" href="../about.htm" target="_top"><u>About</u></a> | <a style="cursor: crosshair" title="Blog" href="../blog.htm" target="_top"><u>Blog</u></a> | |</font>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img height="2" src="../assets/05f58020.gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img style="cursor: crosshair" height="2" src="../assets/05f58020(1).gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td height="11"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div align="center">
+    <div class="post-article">
+      <p class="back-link"><a href="../blog.htm">&larr; Back to Blog</a></p>
+      <p class="post-title">OOP in JavaScript</p>
+      <p class="post-date">Aug 13, 2016</p>
+<h3>Intro</h3>
+
+<hr>
+
+In this article I will introduce you to some common design patterns in JavaScript, including patterns commonly seen in OOP languages, with some compare and contrast after each explanation when useful.
+<h3>Background</h3>
+
+<hr>
+
+There's a common thread in the programming community that JavaScript isn't a&nbsp;<em>real</em> language. After all, it doesn't appear to support inheritance, data protection, or any of the other things programmers are used to seeing in modern programming languages.
+It's my opinion that this is a fallacy. I believe that people are so used to the "way things are done" that college courses teach you, that they simply reject the "new way" without giving it a chance. JavaScript is that new way, and it's capable of nearly all the things that OOP languages are.
+I will show you how to do those things and more in this post.
+<h3>Basic Inheritance</h3>
+
+<hr>
+
+In JavaScript, the concept of inheritance is implemented through the idea of shared "prototypes". A prototype is exactly what it says. This is our definition of our object and what we believe it should do.
+The prototype is set via the prototype property of an object, as such:
+<pre><code>function Thing(){
+}
+Thing.prototype.doSomething = function(){
+  console.log('I\'m doing something!');
+};</code>
+</pre>
+If you're new to JavaScript, your first question might be why a function has properties in the first place. In JavaScript everything is an object — 'nuff said.
+Now, what does this have to do with inheritance? Well, if we want object SubThing to do something that object Thing already does, then we should say that Thing is SubThing's prototype, based on what we said above. This is how we do that:
+<pre><code>function SubThing(){
+}
+SubThing.prototype = new Thing();</code></pre>
+<em>This</em> is basic inheritance in JavaScript. It works because the new keyword calls the function definition that follows it, then returns an object with a hidden [[prototype]] property based on the visible prototype property that we set.
+<h3>Creating Instances in JavaScript</h3>
+
+<hr>
+
+Creating instances in JavaScript is done in much the same way as any other language, but someone coming from a more classic OOP language may not understand where exactly the object to instantiate is here.
+Any function definition can be used with the new keyword in JavaScript to initialize an object. Using one of our function definitions above, that would look like this:
+<pre><code>var subThing = new SubThing();</code></pre>
+As stated above, what this really does is create an object with a hidden [[protoype]] property based on the prototype we defined (in this case inherited from Thing).
+<h3>Accessing Properties of an Object</h3>
+
+<hr>
+
+So far, we've explained what a prototype is, and how to define properties on this prototype, but we haven't actually shown how these properties are eventually used.
+Any property access, specified with the dot operator (obj.property) or dictionary syntax (obj['property']), will begin by looking at the objects direct properties, and then begin crawling up the&nbsp;<em>prototype chain</em>.
+This protoype chain is the hidden [[prototype]] property set on the object we instantiated when using the new keyword.
+It is called a chain, because it will check the current object's prototype, then any inherited prototypes, in the order they were inherited.
+As an example suppose we redefined SubThing this way:
+<pre><code>function SubThing(){
+}
+SubThing.prototype = new Thing();
+SubThing.prototype.doSomethingElse = function(){
+  console.log('I\'m doing something else!');
+};
+var subThing = new SubThing();</code></pre>
+Calling subThing.doSomethingElse() will call the method above, as the instance has the hidden [[prototype]] property we talked about before, created using new.
+What does calling subThing.doSomething() do? It first looks at subThing's prototype. Finding no property with this name, it looks for inherited prototypes. It will find the inherited Thing protoype and call the appropriate method. This is the final step in JavaScript inheritance.
+Of course, inheritance of properties is only one aspect of OOP. Following is methods for implementing other common patterns.
+<h3>Instance Properties</h3>
+
+<hr>
+
+This section only exists to distinguish between static and instance properties in JavaScript. Inheriting instance properties works in exactly the same way as inheriting methods. Anything placed on the prototype essentially becomes treated as a direct property of any instances.
+<h3>Static Properties</h3>
+
+<hr>
+
+To create a static property, you simply add a property to the function definition itself. This property will be the same for all instances. This works because everything, even functions, are objects in JavaScript.
+<pre><code>function Thing(){
+}
+Thing.property = 'STATIC! :D';
+console.log(Thing.property); // logs 'STATIC! :D'</code></pre>
+Unlike some OOP languages, however, the property must always be accessed and set on the function (class) itself. It's instances do not have access to the property.
+<h3>Private Data</h3>
+
+<hr>
+
+Private variables are implemented as variables which are initialized in the constructor of the function (class definition).
+These variables are scoped to the constructor and can only be accessed within the constructor.
+Methods which will access private data are created inside the same constructor.
+<pre><code>function Thing(){
+  var private = "private";
+  // this refers to the instance in this case
+  this.setPrivate = function(value){
+    private = value;
+  };
+  this.getPrivate = function(){
+    return private;
+  };
+}
+var thing = new Thing(); // calls constructor
+console.log(thing.getPrivate()); // logs "private"
+thing.setPrivate("exposed!");
+console.log(thing.getPrivate()); // logs "exposed!";</code></pre>
+<h3>Public Data</h3>
+
+<hr>
+
+Public data is any data either declared as part of the prototype, or added to the instance during the constructor call.
+<pre><code>function Thing(){
+  this.public = "I'm public!";
+}
+var thing = new Thing();
+console.log(thing.public); // Logs "I'm public!"
+function Thing(){
+}
+Thing.prototype.public = "Me too!";
+var thing = new Thing();
+console.log(thing.public); // Logs "Me too!"</code></pre>
+<h3>Bonus: Static Inheritance</h3>
+
+<hr>
+
+Here's something you can't do in most classical OOP languages: static inheritance.
+<pre><code>function Thing(){
+}
+Thing.static = "I'm static!";
+function SubThing(){
+}
+SubThing.static = Thing.static;</code></pre>
+It's really that simple!
+For methods, you can use the following pattern:
+<pre><code>function Thing(){
+}
+Thing.static = "hi";
+Thing.staticMethod = function(){
+  // 'this' refers to the caller
+  console.log(this.static);
+};
+Thing.staticMethod(); // logs "hi"
+function SubThing(){
+}
+SubThing.static = "hi again!";
+SubThing.staticMethod = Thing.staticMethod;
+SubThing.staticMethod(); // logs "hi again!"</code></pre>
+The reason this works is that "this" refers to the caller in JavaScript, so it uses the "static" property of the current caller, which is Thing, then SubThing, respectively.
+<h3>Conclusion</h3>
+
+<hr>
+
+Thanks for reading! Hope this helps anyone interested in writing maintainable code in JavaScript, and even more so that it helps people get rid of the mindset that JavaScript isn't a "real" language and finally start treating it like one instead of writing spaghetti code!
+I tried to write this all to work as-is, but please let me know if you find any errors.
+    </div>
+  </div>
+  <iframe src="/sections/footer.htm"></iframe>
+</body>
+
+</html>

@@ -1,0 +1,655 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html style="cursor: crosshair;">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Creating a Custom UI for openHAB 2 - Tech Blog</title>
+  <meta content="Microsoft FrontPage 4.0" name="GENERATOR">
+  <link rel="stylesheet" type="text/css" href="../assets/styles.css">
+  <link rel="stylesheet" type="text/css" href="../assets/cafes.css">
+  <link rel="stylesheet" type="text/css" href="../assets/blog.css">
+  <script src="../assets/scripts.js"></script>
+</head>
+
+<body style="cursor: crosshair" text="#f7f7ff" vlink="#0000bf" alink="#80c101" link="#00ff00" bgcolor="#000000"
+  background="../assets/bg22[1].jpg">
+  <table cellspacing="0" cellpadding="0" width="100%" border="0" hspace="0" vspace="0">
+    <tbody>
+      <tr>
+        <td width="12" height="12"></td>
+        <td width="100%">
+          <p align="center">
+            <font color="#0000bf"><a href="../index.htm"><img src="../assets/SClogo.gif" align="bottom" border="0" height="153"></a></font>
+          </p>
+        </td>
+        <td width="12" height="12"></td>
+      </tr>
+      <tr>
+        <td valign="top" align="left" width="12"><img style="cursor: crosshair" height="1" hspace="0" src="../assets/1x1.gif" width="12" align="bottom" border="0"></td>
+        <td>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle">&nbsp; <font face="Arial,Helvetica,sans-serif" color="#ffcc99" size="1">&nbsp;&nbsp;&nbsp; </font></td>
+                </tr>
+                <tr>
+                  <td height="11">
+                    <font face="Arial,Helvetica,sans-serif" color="#00ff66" size="1">| <a style="cursor: crosshair" title="House" href="../house.htm" target="_top"><u>House</u></a> | <a style="cursor: crosshair" title="Parking" href="../parking.htm" target="_top"><u>Parking</u></a> | <a style="cursor: crosshair" title="Events" href="../events.htm" target="_top"><u>Events</u></a> | <a style="cursor: crosshair" title="Detroit Events" href="../detroit-events.htm" target="_top"><u>Detroit Events</u></a> | <a style="cursor: crosshair" title="Cafes" href="../cafes.htm" target="_top"><u>Cafes</u></a> | <a style="cursor: crosshair" title="Blogs &amp; Updates" href="../links.htm" target="_top"><u>Blogs &amp; Updates</u></a> | <a style="cursor: crosshair" title="Wtf" href="../about.htm" target="_top"><u>About</u></a> | <a style="cursor: crosshair" title="Blog" href="../blog.htm" target="_top"><u>Blog</u></a> | |</font>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img height="2" src="../assets/05f58020.gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img style="cursor: crosshair" height="2" src="../assets/05f58020(1).gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td height="11"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div align="center">
+    <div class="post-article">
+      <p class="back-link"><a href="../blog.htm">&larr; Back to Blog</a></p>
+      <p class="post-title">Creating a Custom UI for openHAB 2</p>
+      <p class="post-date">Sep 1, 2017</p>
+<h3>Intro</h3>
+<a href="https://www.openhab.org/">OpenHAB</a> is a home automation framework running on top of well known Java technologies like <a href="https://www.osgi.org/developer/architecture/">OSGi</a>.
+OpenHAB is developed in such a way that the average user could simply open up the prepackaged user interfaces and be able to start communicating with the devices in their home through available bindings. However, it's often the case that openHAB is being used to develop an automation system for which configurations, settings, and other user interactions are being handled automatically, such as an internally developed application connecting devices in vehicles. In such a case, the default UIs are not appropriate for user interaction.
+This article goes through the process of creating a custom UI which can be extended with all the desired behavior, and which does not include the undesirable behavior of the default UIs. Because openHAB is not well documented, this information can be very challenging to find anywhere else.
+<h3>Creating the UI</h3>
+Your UI file structure should be as follows. Everything should be under the <code>org.eclipse.smarthome.ui.new</code> package.
+
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/file-structure.png"><img src="http://examiningeverything.com/wp-content/uploads/file-structure.png" alt="File Structure for openHAB UI" width="197" height="269"></a><small>File Structure for openHAB UI</small></div>
+<h4>NewUIApp.java</h4>
+<code>NewUIApp.java</code> has to take the <code>httpService</code> from OSGi and register its resources at a given location. This is done with the following code.
+<pre><code>package org.eclipse.smarthome.ui.new.internal;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.http.HttpService;
+import org.osgi.service.http.NamespaceException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+public class NewUIApp {
+    public static final String WEBAPP_ALIAS = "/newui"; // the root dir of our new ui
+    private final Logger logger = LoggerFactory.getLogger(NewUIApp.class);
+    protected HttpService httpService;
+    protected void activate(ComponentContext componentContext) {
+        try {
+            // register our resources in the web directory
+            httpService.registerResources(WEBAPP_ALIAS, "web", null);
+            logger.info("Started New UI at " + WEBAPP_ALIAS);
+        } catch (NamespaceException e) {
+            logger.error("Error during servlet startup", e);
+        }
+    }
+    protected void deactivate(ComponentContext componentContext) {
+        httpService.unregister(WEBAPP_ALIAS);
+        logger.info("Stopped New UI");
+    }
+    protected void setHttpService(HttpService httpService) {
+        this.httpService = httpService;
+    }
+    protected void unsetHttpService(HttpService httpService) {
+        this.httpService = null;
+    }
+}
+</code></pre>
+<h4>MANIFEST.MF</h4>
+The manifest file is used by OSGi to determine the name of the bundle and the bundle package requirements. That should look as follows.
+<pre><code>Manifest-Version: 1.0
+Bundle-Name: New UI
+Bundle-Vendor: ExaminingEverything
+Bundle-Version: 0.9.0.qualifier
+Bundle-ManifestVersion: 2
+Bundle-License: http://www.eclipse.org/legal/epl-v10.html
+Import-Package: org.osgi.service.component,
+ org.osgi.service.http,
+ org.slf4j
+Bundle-SymbolicName: org.eclipse.smarthome.ui.new;singleton:=true
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Service-Component: OSGI-INF/*.xml
+Bundle-ClassPath: .
+</code></pre>
+You'll see how the bundle name comes into play later.
+<h4>newuiapp.xml</h4>
+This file tells OSGi what services our bundle provides. In this case, it simply provides the UI app Java class that we created, and it also includes a <code>reference</code> tag to get the <code>HttpService</code> injected at runtime.
+<pre><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" activate="activate" deactivate="deactivate" name="org.eclipse.smarthome.ui.new.internal.NewUIApp"&gt;
+   &lt;implementation class="org.eclipse.smarthome.ui.new.internal.NewUIApp"/&gt;
+   &lt;reference bind="setHttpService" cardinality="1..1" interface="org.osgi.service.http.HttpService" name="HttpService" policy="static" unbind="unsetHttpService"/&gt;
+&lt;/scr:component&gt;
+</code></pre>
+Cardinality <code>1..1</code> refers to the fact that our request is satisfied by exactly one <code>HttpService</code> instance.
+<h4>index.html</h4>
+Index.html can contain whatever you like. This is there simply to show that the new UI is registered in openHAB. The next step for the UI, which this article does not cover, would be tying together the UI elements with API calls to the openHAB instance. You can look at the existing Paper UI implementation for an example of this.
+Here's a simple index.html page.
+<pre><code>&lt;!DOCTYPE HTML&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;New UI&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;NEW UI TEST!&lt;/h1&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h4>pom.xml</h4>
+The pom.xml is used for building in Maven. This file will have to have all the necessary information to build the project as an eclipse plugin, and to create the correct output for an OSGi bundle so we can register it with openHAB later.
+The POM should look like this. The reason for the giant POM is that all the parent POMs from the UI project POM all the way up to the smarthome library have to have their configurations included here for the build to work. Normally they would be included by their location relative to the UI POM, but we wont always want our POM located in a specific place.
+<pre><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"&gt;
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+  &lt;artifactId&gt;org.eclipse.smarthome.ui.new&lt;/artifactId&gt;
+  &lt;groupId&gt;org.eclipse.smarthome.ui&lt;/groupId&gt;
+  &lt;version&gt;0.9.0-SNAPSHOT&lt;/version&gt;
+  &lt;name&gt;New UI&lt;/name&gt;
+  &lt;packaging&gt;eclipse-plugin&lt;/packaging&gt;
+  &lt;properties&gt;
+    &lt;esh.java.version&gt;1.8&lt;/esh.java.version&gt;
+    &lt;maven.compiler.source&gt;${esh.java.version}&lt;/maven.compiler.source&gt;
+    &lt;maven.compiler.target&gt;${esh.java.version}&lt;/maven.compiler.target&gt;
+    &lt;maven.compiler.compilerVersion&gt;${esh.java.version}&lt;/maven.compiler.compilerVersion&gt;
+    &lt;tycho-version&gt;1.0.0&lt;/tycho-version&gt;
+    &lt;tycho-groupid&gt;org.eclipse.tycho&lt;/tycho-groupid&gt;
+    &lt;xtext-version&gt;2.12.0&lt;/xtext-version&gt;
+    &lt;karaf.version&gt;4.0.3&lt;/karaf.version&gt;
+    &lt;ds-annotations.version&gt;1.2.8&lt;/ds-annotations.version&gt;
+    &lt;jdt-annotations.version&gt;2.1.0&lt;/jdt-annotations.version&gt;
+    &lt;build.helper.maven.plugin.version&gt;1.8&lt;/build.helper.maven.plugin.version&gt;
+    &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+  &lt;/properties&gt;
+&lt;build&gt;
+    &lt;plugins&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.eclipse.tycho&lt;/groupId&gt;
+        &lt;artifactId&gt;tycho-source-plugin&lt;/artifactId&gt;
+        &lt;version&gt;${tycho-version}&lt;/version&gt;
+        &lt;executions&gt;
+          &lt;execution&gt;
+            &lt;id&gt;plugin-source&lt;/id&gt;
+            &lt;goals&gt;
+              &lt;goal&gt;plugin-source&lt;/goal&gt;
+            &lt;/goals&gt;
+          &lt;/execution&gt;
+        &lt;/executions&gt;
+      &lt;/plugin&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.apache.felix&lt;/groupId&gt;
+        &lt;artifactId&gt;maven-scr-plugin&lt;/artifactId&gt;
+        &lt;executions&gt;
+          &lt;execution&gt;
+            &lt;id&gt;generate-scr-scrdescriptor&lt;/id&gt;
+            &lt;goals&gt;
+              &lt;goal&gt;scr&lt;/goal&gt;
+            &lt;/goals&gt;
+          &lt;/execution&gt;
+        &lt;/executions&gt;
+      &lt;/plugin&gt;
+&lt;plugin&gt;
+        &lt;groupId&gt;${tycho-groupid}&lt;/groupId&gt;
+        &lt;artifactId&gt;tycho-maven-plugin&lt;/artifactId&gt;
+        &lt;version&gt;${tycho-version}&lt;/version&gt;
+        &lt;extensions&gt;true&lt;/extensions&gt;
+      &lt;/plugin&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;${tycho-groupid}&lt;/groupId&gt;
+        &lt;artifactId&gt;target-platform-configuration&lt;/artifactId&gt;
+        &lt;configuration&gt;
+          &lt;environments&gt;
+            &lt;environment&gt;
+              &lt;os&gt;linux&lt;/os&gt;
+              &lt;ws&gt;gtk&lt;/ws&gt;
+              &lt;arch&gt;x86&lt;/arch&gt;
+            &lt;/environment&gt;
+            &lt;environment&gt;
+              &lt;os&gt;linux&lt;/os&gt;
+              &lt;ws&gt;gtk&lt;/ws&gt;
+              &lt;arch&gt;x86_64&lt;/arch&gt;
+            &lt;/environment&gt;
+            &lt;environment&gt;
+              &lt;os&gt;win32&lt;/os&gt;
+              &lt;ws&gt;win32&lt;/ws&gt;
+              &lt;arch&gt;x86&lt;/arch&gt;
+            &lt;/environment&gt;
+            &lt;environment&gt;
+              &lt;os&gt;win32&lt;/os&gt;
+              &lt;ws&gt;win32&lt;/ws&gt;
+              &lt;arch&gt;x86_64&lt;/arch&gt;
+            &lt;/environment&gt;
+            &lt;environment&gt;
+              &lt;os&gt;macosx&lt;/os&gt;
+              &lt;ws&gt;cocoa&lt;/ws&gt;
+              &lt;arch&gt;x86_64&lt;/arch&gt;
+            &lt;/environment&gt;
+          &lt;/environments&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+        &lt;artifactId&gt;maven-clean-plugin&lt;/artifactId&gt;
+        &lt;version&gt;2.5&lt;/version&gt;
+        &lt;configuration&gt;
+          &lt;filesets&gt;
+            &lt;fileset&gt;
+              &lt;directory&gt;${basedir}/xtend-gen&lt;/directory&gt;
+              &lt;includes&gt;
+                &lt;include&gt;**&lt;/include&gt;
+              &lt;/includes&gt;
+              &lt;excludes&gt;
+                &lt;exclude&gt;.gitignore&lt;/exclude&gt;
+              &lt;/excludes&gt;
+            &lt;/fileset&gt;
+            &lt;fileset&gt;
+              &lt;directory&gt;${basedir}/src/main/generated-sources/xtend&lt;/directory&gt;
+              &lt;includes&gt;
+                &lt;include&gt;**&lt;/include&gt;
+              &lt;/includes&gt;
+              &lt;excludes&gt;
+                &lt;exclude&gt;.gitignore&lt;/exclude&gt;
+              &lt;/excludes&gt;
+            &lt;/fileset&gt;
+          &lt;/filesets&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+        &lt;artifactId&gt;build-helper-maven-plugin&lt;/artifactId&gt;
+      &lt;/plugin&gt;
+      &lt;plugin&gt;
+        &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+      &lt;/plugin&gt;
+    &lt;/plugins&gt;
+&lt;pluginManagement&gt;
+      &lt;plugins&gt;
+        &lt;plugin&gt;
+          &lt;groupId&gt;${tycho-groupid}&lt;/groupId&gt;
+          &lt;artifactId&gt;tycho-compiler-plugin&lt;/artifactId&gt;
+          &lt;version&gt;${tycho-version}&lt;/version&gt;
+          &lt;configuration&gt;
+            &lt;extraClasspathElements&gt;
+              &lt;extraClasspathElement&gt;
+                &lt;groupId&gt;org.apache.felix&lt;/groupId&gt;
+                &lt;artifactId&gt;org.apache.felix.scr.ds-annotations&lt;/artifactId&gt;
+                &lt;version&gt;${ds-annotations.version}&lt;/version&gt;
+              &lt;/extraClasspathElement&gt;
+              &lt;extraClasspathElement&gt;
+                &lt;groupId&gt;org.eclipse.jdt&lt;/groupId&gt;
+                &lt;artifactId&gt;org.eclipse.jdt.annotation&lt;/artifactId&gt;
+                &lt;version&gt;${jdt-annotations.version}&lt;/version&gt;
+              &lt;/extraClasspathElement&gt;
+            &lt;/extraClasspathElements&gt;
+            &lt;compilerArgs&gt;
+              &lt;arg&gt;-err:+nullAnnot(org.eclipse.jdt.annotation.Nullable|org.eclipse.jdt.annotation.NonNull|org.eclipse.jdt.annotation.NonNullByDefault),+inheritNullAnnot&lt;/arg&gt;
+              &lt;arg&gt;-warn:+null,+inheritNullAnnot,+nullAnnotConflict,+nullUncheckedConversion,+nullAnnotRedundant,+nullDereference&lt;/arg&gt;
+            &lt;/compilerArgs&gt;
+          &lt;/configuration&gt;
+        &lt;/plugin&gt;
+        &lt;plugin&gt;
+          &lt;groupId&gt;${tycho-groupid}&lt;/groupId&gt;
+          &lt;artifactId&gt;target-platform-configuration&lt;/artifactId&gt;
+          &lt;version&gt;${tycho-version}&lt;/version&gt;
+          &lt;configuration&gt;
+            &lt;!--
+            &lt;resolver&gt;p2&lt;/resolver&gt;
+            &lt;ignoreTychoRepositories&gt;true&lt;/ignoreTychoRepositories&gt;
+            --&gt;
+            &lt;pomDependencies&gt;consider&lt;/pomDependencies&gt;
+            &lt;target&gt;
+              &lt;artifact&gt;
+                &lt;groupId&gt;org.eclipse.smarthome&lt;/groupId&gt;
+                &lt;artifactId&gt;targetplatform&lt;/artifactId&gt;
+                &lt;version&gt;${project.version}&lt;/version&gt;
+                &lt;classifier&gt;smarthome&lt;/classifier&gt;
+              &lt;/artifact&gt;
+            &lt;/target&gt;
+          &lt;/configuration&gt;
+        &lt;/plugin&gt;
+        &lt;plugin&gt;
+          &lt;groupId&gt;${tycho-groupid}&lt;/groupId&gt;
+          &lt;artifactId&gt;tycho-surefire-plugin&lt;/artifactId&gt;
+          &lt;version&gt;${tycho-version}&lt;/version&gt;
+          &lt;configuration&gt;
+            &lt;failIfNoTests&gt;false&lt;/failIfNoTests&gt;
+          &lt;/configuration&gt;
+        &lt;/plugin&gt;
+        &lt;plugin&gt;
+          &lt;groupId&gt;org.apache.felix&lt;/groupId&gt;
+          &lt;artifactId&gt;maven-scr-plugin&lt;/artifactId&gt;
+          &lt;version&gt;1.24.0&lt;/version&gt;
+          &lt;configuration&gt;
+            &lt;supportedProjectTypes&gt;
+              &lt;supportedProjectType&gt;eclipse-plugin&lt;/supportedProjectType&gt;
+            &lt;/supportedProjectTypes&gt;
+          &lt;/configuration&gt;
+        &lt;/plugin&gt;
+        &lt;plugin&gt;
+          &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+          &lt;artifactId&gt;build-helper-maven-plugin&lt;/artifactId&gt;
+          &lt;version&gt;${build.helper.maven.plugin.version}&lt;/version&gt;
+          &lt;executions&gt;
+            &lt;execution&gt;
+              &lt;id&gt;add-source&lt;/id&gt;
+              &lt;phase&gt;generate-sources&lt;/phase&gt;
+              &lt;goals&gt;
+                &lt;goal&gt;add-source&lt;/goal&gt;
+              &lt;/goals&gt;
+              &lt;configuration&gt;
+                &lt;sources&gt;
+                  &lt;source&gt;src/main/groovy&lt;/source&gt;
+                &lt;/sources&gt;
+              &lt;/configuration&gt;
+            &lt;/execution&gt;
+            &lt;execution&gt;
+              &lt;id&gt;add-test-source&lt;/id&gt;
+              &lt;phase&gt;generate-test-sources&lt;/phase&gt;
+              &lt;goals&gt;
+                &lt;goal&gt;add-test-source&lt;/goal&gt;
+              &lt;/goals&gt;
+              &lt;configuration&gt;
+                &lt;sources&gt;
+                  &lt;source&gt;src/test/groovy&lt;/source&gt;
+                &lt;/sources&gt;
+              &lt;/configuration&gt;
+            &lt;/execution&gt;
+          &lt;/executions&gt;
+        &lt;/plugin&gt;
+        &lt;plugin&gt;
+          &lt;groupId&gt;org.apache.felix&lt;/groupId&gt;
+          &lt;artifactId&gt;maven-bundle-plugin&lt;/artifactId&gt;
+          &lt;version&gt;3.0.1&lt;/version&gt;
+          &lt;extensions&gt;true&lt;/extensions&gt;
+          &lt;configuration&gt;
+            &lt;supportedProjectTypes&gt;
+              &lt;supportedProjectType&gt;jar&lt;/supportedProjectType&gt;
+              &lt;supportedProjectType&gt;bundle&lt;/supportedProjectType&gt;
+              &lt;supportedProjectType&gt;eclipse-plugin&lt;/supportedProjectType&gt;
+            &lt;/supportedProjectTypes&gt;
+          &lt;/configuration&gt;
+        &lt;/plugin&gt;
+        &lt;plugin&gt;
+          &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+          &lt;version&gt;3.6.1&lt;/version&gt;
+          &lt;configuration&gt;
+            &lt;compilerId&gt;groovy-eclipse-compiler&lt;/compilerId&gt;
+          &lt;/configuration&gt;
+          &lt;executions&gt;
+            &lt;execution&gt;
+              &lt;goals&gt;
+                &lt;goal&gt;compile&lt;/goal&gt;
+              &lt;/goals&gt;
+            &lt;/execution&gt;
+          &lt;/executions&gt;
+          &lt;dependencies&gt;
+            &lt;dependency&gt;
+              &lt;groupId&gt;org.codehaus.groovy&lt;/groupId&gt;
+              &lt;artifactId&gt;groovy-eclipse-compiler&lt;/artifactId&gt;
+              &lt;version&gt;2.9.2-01&lt;/version&gt;
+            &lt;/dependency&gt;
+            &lt;dependency&gt;
+              &lt;groupId&gt;org.codehaus.groovy&lt;/groupId&gt;
+              &lt;artifactId&gt;groovy-eclipse-batch&lt;/artifactId&gt;
+              &lt;version&gt;2.4.3-01&lt;/version&gt;
+            &lt;/dependency&gt;
+          &lt;/dependencies&gt;
+        &lt;/plugin&gt;
+        &lt;plugin&gt;
+          &lt;groupId&gt;com.mycila&lt;/groupId&gt;
+          &lt;artifactId&gt;license-maven-plugin&lt;/artifactId&gt;
+          &lt;version&gt;3.0&lt;/version&gt;
+          &lt;configuration&gt;
+            &lt;basedir&gt;${basedir}&lt;/basedir&gt;
+            &lt;header&gt;src/etc/header.txt&lt;/header&gt;
+            &lt;quiet&gt;false&lt;/quiet&gt;
+            &lt;failIfMissing&gt;true&lt;/failIfMissing&gt;
+            &lt;strictCheck&gt;true&lt;/strictCheck&gt;
+            &lt;aggregate&gt;true&lt;/aggregate&gt;
+            &lt;useDefaultMapping&gt;true&lt;/useDefaultMapping&gt;
+            &lt;mapping&gt;
+              &lt;xtend&gt;JAVADOC_STYLE&lt;/xtend&gt;
+              &lt;mwe2&gt;JAVADOC_STYLE&lt;/mwe2&gt;
+            &lt;/mapping&gt;
+            &lt;includes&gt;
+              &lt;include&gt;src/**/*.java&lt;/include&gt;
+              &lt;include&gt;src/**/*.groovy&lt;/include&gt;
+              &lt;include&gt;src/**/*.xtend&lt;/include&gt;
+              &lt;include&gt;src/**/*.mwe2&lt;/include&gt;
+              &lt;include&gt;bin/**/*.mwe2&lt;/include&gt;
+              &lt;include&gt;workflows/**/*.mwe2&lt;/include&gt;
+              &lt;include&gt;src/main/feature/feature.xml&lt;/include&gt;
+              &lt;include&gt;feature.xml&lt;/include&gt;
+              &lt;include&gt;OSGI-INF/*.xml&lt;/include&gt;
+            &lt;/includes&gt;
+            &lt;excludes&gt;
+              &lt;exclude&gt;_*.java&lt;/exclude&gt;
+            &lt;/excludes&gt;
+            &lt;useDefaultExcludes&gt;true&lt;/useDefaultExcludes&gt;
+            &lt;properties&gt;
+              &lt;year&gt;2017&lt;/year&gt;
+            &lt;/properties&gt;
+            &lt;encoding&gt;UTF-8&lt;/encoding&gt;
+          &lt;/configuration&gt;
+          &lt;executions&gt;
+            &lt;execution&gt;
+              &lt;goals&gt;
+                &lt;goal&gt;check&lt;/goal&gt;
+              &lt;/goals&gt;
+            &lt;/execution&gt;
+          &lt;/executions&gt;
+        &lt;/plugin&gt;
+        &lt;plugin&gt;
+          &lt;groupId&gt;org.eclipse.xtend&lt;/groupId&gt;
+          &lt;artifactId&gt;xtend-maven-plugin&lt;/artifactId&gt;
+          &lt;version&gt;${xtext-version}&lt;/version&gt;
+          &lt;executions&gt;
+            &lt;execution&gt;
+              &lt;goals&gt;
+                &lt;goal&gt;compile&lt;/goal&gt;
+                &lt;goal&gt;xtend-install-debug-info&lt;/goal&gt;
+                &lt;goal&gt;testCompile&lt;/goal&gt;
+                &lt;goal&gt;xtend-test-install-debug-info&lt;/goal&gt;
+              &lt;/goals&gt;
+              &lt;configuration&gt;
+                &lt;outputDirectory&gt;${basedir}/xtend-gen&lt;/outputDirectory&gt;
+                &lt;testOutputDirectory&gt;${basedir}/xtend-gen&lt;/testOutputDirectory&gt;
+              &lt;/configuration&gt;
+            &lt;/execution&gt;
+          &lt;/executions&gt;
+        &lt;/plugin&gt;
+        &lt;plugin&gt;
+          &lt;groupId&gt;${tycho-groupid}&lt;/groupId&gt;
+          &lt;artifactId&gt;tycho-versions-plugin&lt;/artifactId&gt;
+          &lt;version&gt;${tycho-version}&lt;/version&gt;
+        &lt;/plugin&gt;
+        &lt;plugin&gt;
+          &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+          &lt;artifactId&gt;maven-clean-plugin&lt;/artifactId&gt;
+          &lt;version&gt;2.5&lt;/version&gt;
+        &lt;/plugin&gt;
+      &lt;/plugins&gt;
+    &lt;/pluginManagement&gt;
+  &lt;/build&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.apache.felix&lt;/groupId&gt;
+      &lt;artifactId&gt;org.apache.felix.scr.ds-annotations&lt;/artifactId&gt;
+      &lt;version&gt;${ds-annotations.version}&lt;/version&gt;
+      &lt;optional&gt;true&lt;/optional&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+&lt;profiles&gt;
+    &lt;profile&gt;
+      &lt;id&gt;sign&lt;/id&gt;
+      &lt;build&gt;
+        &lt;plugins&gt;
+          &lt;plugin&gt;
+            &lt;groupId&gt;org.eclipse.cbi.maven.plugins&lt;/groupId&gt;
+            &lt;artifactId&gt;eclipse-jarsigner-plugin&lt;/artifactId&gt;
+            &lt;version&gt;1.0.5&lt;/version&gt;
+            &lt;executions&gt;
+              &lt;execution&gt;
+                &lt;id&gt;sign&lt;/id&gt;
+                &lt;phase&gt;verify&lt;/phase&gt;
+                &lt;goals&gt;
+                  &lt;goal&gt;sign&lt;/goal&gt;
+                &lt;/goals&gt;
+              &lt;/execution&gt;
+            &lt;/executions&gt;
+          &lt;/plugin&gt;
+        &lt;/plugins&gt;
+      &lt;/build&gt;
+    &lt;/profile&gt;
+    &lt;profile&gt;
+      &lt;id&gt;QA&lt;/id&gt;
+      &lt;build&gt;
+        &lt;plugins&gt;
+          &lt;plugin&gt;
+            &lt;groupId&gt;org.jacoco&lt;/groupId&gt;
+            &lt;artifactId&gt;jacoco-maven-plugin&lt;/artifactId&gt;
+            &lt;version&gt;0.7.4.201502262128&lt;/version&gt;
+            &lt;configuration&gt;
+              &lt;dataFile&gt;${session.executionRootDirectory}/target/coverage.jacoco&lt;/dataFile&gt;
+              &lt;destFile&gt;${session.executionRootDirectory}/target/coverage.jacoco&lt;/destFile&gt;
+              &lt;append&gt;true&lt;/append&gt;
+              &lt;excludes&gt;
+                &lt;exclude&gt;**/*Test.*&lt;/exclude&gt;
+              &lt;/excludes&gt;
+            &lt;/configuration&gt;
+            &lt;executions&gt;
+              &lt;execution&gt;
+                &lt;id&gt;default-prepare-agent&lt;/id&gt;
+                &lt;goals&gt;
+                  &lt;goal&gt;prepare-agent&lt;/goal&gt;
+                &lt;/goals&gt;
+              &lt;/execution&gt;
+              &lt;execution&gt;
+                &lt;id&gt;default-prepare-agent-integration&lt;/id&gt;
+                &lt;goals&gt;
+                  &lt;goal&gt;prepare-agent-integration&lt;/goal&gt;
+                &lt;/goals&gt;
+              &lt;/execution&gt;
+            &lt;/executions&gt;
+          &lt;/plugin&gt;
+        &lt;/plugins&gt;
+      &lt;/build&gt;
+    &lt;/profile&gt;
+    &lt;!-- We need this profile in order to set '-Xdoclint:none' as a project property which will be used later by maven-javadoc-plugin as an 'additionalparam' to be passed to the javadoc.exe. --&gt;
+    &lt;!-- This option will be used only if the JDK version is 1.8 or higher. Earlier versions of javadoc.exe does not accept this option. --&gt;
+    &lt;profile&gt;
+      &lt;id&gt;doclint-java8-disable&lt;/id&gt;
+      &lt;activation&gt;
+        &lt;jdk&gt;[1.8,)&lt;/jdk&gt;
+      &lt;/activation&gt;
+      &lt;properties&gt;
+        &lt;javadoc.opts&gt;-Xdoclint:none&lt;/javadoc.opts&gt;
+      &lt;/properties&gt;
+    &lt;/profile&gt;
+    &lt;profile&gt;
+      &lt;id&gt;javadoc&lt;/id&gt;
+      &lt;build&gt;
+        &lt;plugins&gt;
+          &lt;plugin&gt;
+            &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+            &lt;artifactId&gt;maven-javadoc-plugin&lt;/artifactId&gt;
+            &lt;version&gt;2.10.3&lt;/version&gt;
+            &lt;executions&gt;
+              &lt;execution&gt;
+                &lt;id&gt;aggregate&lt;/id&gt;
+                &lt;goals&gt;
+                  &lt;goal&gt;aggregate-jar&lt;/goal&gt;
+                &lt;/goals&gt;
+              &lt;/execution&gt;
+            &lt;/executions&gt;
+            &lt;configuration&gt;
+              &lt;!-- 'javadoc.opts' project property is set by the 'doclint-java8-disable' profile. It is important to keep 'javadoc' profile declaration after the declaration of 'doclint-java8-disable' profile. --&gt;
+              &lt;additionalparam&gt;${javadoc.opts}&lt;/additionalparam&gt;
+              &lt;excludePackageNames&gt;*.internal.*,nl.*&lt;/excludePackageNames&gt;
+            &lt;/configuration&gt;
+          &lt;/plugin&gt;
+          &lt;plugin&gt;
+            &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+            &lt;artifactId&gt;build-helper-maven-plugin&lt;/artifactId&gt;
+            &lt;version&gt;${build.helper.maven.plugin.version}&lt;/version&gt;
+            &lt;executions&gt;
+              &lt;execution&gt;
+                &lt;id&gt;attach-artifacts&lt;/id&gt;
+                &lt;phase&gt;install&lt;/phase&gt;
+                &lt;goals&gt;
+                  &lt;goal&gt;attach-artifact&lt;/goal&gt;
+                &lt;/goals&gt;
+                &lt;configuration&gt;
+                  &lt;artifacts&gt;
+                    &lt;artifact&gt;
+                      &lt;file&gt;${project.build.outputDirectory}/${project.artifactId}-${project.version}.jar&lt;/file&gt;
+                      &lt;type&gt;jar&lt;/type&gt;
+                      &lt;classifier&gt;javadoc&lt;/classifier&gt;
+                    &lt;/artifact&gt;
+                  &lt;/artifacts&gt;
+                &lt;/configuration&gt;
+              &lt;/execution&gt;
+            &lt;/executions&gt;
+          &lt;/plugin&gt;
+        &lt;/plugins&gt;
+      &lt;/build&gt;
+    &lt;/profile&gt;
+  &lt;/profiles&gt;
+&lt;/project&gt;
+</code></pre>
+<h4>build.properties</h4>
+This file contains the build info for your jar output. Specifically, it tells Maven what items to include in the build and where to output the class files.
+<pre><code>
+output.. = target/classes/
+bin.includes = META-INF/,\
+               .,\
+               OSGI-INF/,\
+               web/index.html
+source.. = src/main/java/
+</code></pre>
+<h3>Adding the bundle to OpenHAB</h3>
+<h4>Package UI</h4>
+First, you need to run the <code>mvn package</code> command in your base directory to create a package that you can register as a bundle with OSGi. On Windows, you may need to download Maven and extract it, then add it to your PATH. For Linux systems, you can run <code>apt-get install maven</code>. Your output should look like this:
+
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/build-output.png"><img src="http://examiningeverything.com/wp-content/uploads/build-output.png" alt="openHAB UI Build Output" width="961" height="229"></a><small>openHAB UI Build Output</small></div>
+<h4>Start openHAB</h4>
+Installing openHAB is relatively easy on both Linux distros and Windows. Just unzip the files provided by openHAB, and run the start script from your shell. For Linux-based systems you may also have to ssh into the openHAB instance by running <code>ssh openhab@localhost</code>. The default password is <code>habopen</code>.
+<h4>Install the bundle</h4>
+The <code>bundle:install</code> command expects a URL, so you will have to type your package file path like so: <code>file://localhost/[root_dir]/org.eclipse.smarthome.ui.new/target/org.eclipse.smarthome.ui.new-SNAPSHOT-[version].jar</code>. Essentially, you provide the full path to the package jar as a file URL to register your new UI bundle.
+
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/install-bundle.png"><img src="http://examiningeverything.com/wp-content/uploads/install-bundle.png" alt="Install OpenHAB Bundle" width="961" height="325"></a><small>Install OpenHAB Bundle</small></div>
+
+Next, you should call <code>bundle:start "New UI"</code> to start the bundle.
+
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/start-bundle.png"><img src="http://examiningeverything.com/wp-content/uploads/start-bundle.png" alt="Start openHAB UI Bundle" width="263" height="337"></a><small>Start openHAB UI Bundle</small></div>
+<h4>View the page</h4>
+Because we did not also register a dashboard tile bundle for the front-end, you must navigate directly to the new UI. You can do this by navigating to <code>http://localhost:8080/newui/index.html</code> in your browser. The <code>HttpService</code> that we had injected into our UI by OSGi will then serve up the index page from the location that we registered (<code>web</code> directory).
+
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/view-UI.png"><img src="http://examiningeverything.com/wp-content/uploads/view-UI.png" alt="View openHAB UI" width="347" height="143"></a><small>View openHAB UI</small></div>
+<h4>Updating the bundle</h4>
+From now on, when you build your package, you only need to call <code>bundle:update "New UI"</code> and it will fetch it from the previous location. You will need to install the new bundle if the version changes, however.
+<h3>Conclusion</h3>
+OpenHAB is a great home automation system, but is designed more to be user-friendly rather than developer-friendly. There are many small tips and tricks like this needed to turn openHAB into a commercial production automation system. Creating a UI for openHAB is very simple - once you understand OSGi and the openHAB framework. This guide should provide you a starting point to develop your own system on top of openHAB.
+<h3>Notes</h3>
+<h4>Dashboard tiles</h4>
+If you want your UI to show up in the list of tiles when the application opens, you'll also have to extend the <code>org.openhab.ui.dashboard.DashboardTile</code> class, and provide your implementation of it to OSGi as a bundle. You can see how this is done by looking at the existing implementation for Paper UI.
+<h4>API calls</h4>
+The actual API calls needed to create an openHAB UI are varied and too many to go over here. The default openHAB installation provides a UI which allows you to test the various APIs, so you can use this as a starting point. You can also look at Paper UI if you want to see an implementation of the API calls based on AngularJS v1.
+    </div>
+  </div>
+  <iframe src="/sections/footer.htm"></iframe>
+</body>
+
+</html>

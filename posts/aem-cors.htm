@@ -1,0 +1,130 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html style="cursor: crosshair;">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Help! CORS won't work with my AEM servlet - Tech Blog</title>
+  <meta content="Microsoft FrontPage 4.0" name="GENERATOR">
+  <link rel="stylesheet" type="text/css" href="../assets/styles.css">
+  <link rel="stylesheet" type="text/css" href="../assets/cafes.css">
+  <link rel="stylesheet" type="text/css" href="../assets/blog.css">
+  <script src="../assets/scripts.js"></script>
+</head>
+
+<body style="cursor: crosshair" text="#f7f7ff" vlink="#0000bf" alink="#80c101" link="#00ff00" bgcolor="#000000"
+  background="../assets/bg22[1].jpg">
+  <table cellspacing="0" cellpadding="0" width="100%" border="0" hspace="0" vspace="0">
+    <tbody>
+      <tr>
+        <td width="12" height="12"></td>
+        <td width="100%">
+          <p align="center">
+            <font color="#0000bf"><a href="../index.htm"><img src="../assets/SClogo.gif" align="bottom" border="0" height="153"></a></font>
+          </p>
+        </td>
+        <td width="12" height="12"></td>
+      </tr>
+      <tr>
+        <td valign="top" align="left" width="12"><img style="cursor: crosshair" height="1" hspace="0" src="../assets/1x1.gif" width="12" align="bottom" border="0"></td>
+        <td>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle">&nbsp; <font face="Arial,Helvetica,sans-serif" color="#ffcc99" size="1">&nbsp;&nbsp;&nbsp; </font></td>
+                </tr>
+                <tr>
+                  <td height="11">
+                    <font face="Arial,Helvetica,sans-serif" color="#00ff66" size="1">| <a style="cursor: crosshair" title="House" href="../house.htm" target="_top"><u>House</u></a> | <a style="cursor: crosshair" title="Parking" href="../parking.htm" target="_top"><u>Parking</u></a> | <a style="cursor: crosshair" title="Events" href="../events.htm" target="_top"><u>Events</u></a> | <a style="cursor: crosshair" title="Detroit Events" href="../detroit-events.htm" target="_top"><u>Detroit Events</u></a> | <a style="cursor: crosshair" title="Cafes" href="../cafes.htm" target="_top"><u>Cafes</u></a> | <a style="cursor: crosshair" title="Blogs &amp; Updates" href="../links.htm" target="_top"><u>Blogs &amp; Updates</u></a> | <a style="cursor: crosshair" title="Wtf" href="../about.htm" target="_top"><u>About</u></a> | <a style="cursor: crosshair" title="Blog" href="../blog.htm" target="_top"><u>Blog</u></a> | |</font>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img height="2" src="../assets/05f58020.gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img style="cursor: crosshair" height="2" src="../assets/05f58020(1).gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td height="11"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div align="center">
+    <div class="post-article">
+      <p class="back-link"><a href="../blog.htm">&larr; Back to Blog</a></p>
+      <p class="post-title">Help! CORS won't work with my AEM servlet</p>
+      <p class="post-date">Apr 26, 2021</p>
+<p>I ran across a very challenging issue recently, but it turned out to be simple to resolve. We were building out a small servlet to proxy requests to an API while hiding the API keys from the front end, but Chrome would always fail with a CORS error when testing locally from our React app. Once the CORS error was fixed, we constantly saw 403 forbidden despite sending the correct cookies in the headers.</p>
+
+<p>Here's how to solve this problem.</p>
+
+<h2>Implementing CORS</h2>
+
+<p>First, we need to implement basic CORS. This means sending back the correct headers and responding to OPTIONS requests from the browser. The browser often queries OPTIONS to check with the server that the request it's about to make is allowed. This is called a preflight request.</p>
+
+<p>Allowing CORS in AEM 6.3+ is actually very simple, simply find Adobe Granite Cross-Origin Resource Sharing Policy in your OSGi configurations in the AEM console. You will need to add a configuration with the host making the call. In my case, this is http://localhost:3000. Here's what that looks like.</p>
+
+<figure class="wp-block-image size-large"><img src="http://examiningeverything.com/wp-content/uploads/image-1024x753.png" alt="" class="wp-image-568" /></figure>
+
+<p>If this configuration already exists, you can simply edit it instead. This may be all you need to do to allow CORS in production, however, if you're trying to test CORS from a local application against a local AEM instance, you'll need to edit the filters as well.</p>
+
+<h2>Turning off the filters</h2>
+
+<p>In AEM, there are filters that apply to requests coming from external sources (non-AEM). These need to be disabled as they can prevent requests from ever reaching a servlet, even if the servlet is set up correctly and CORS is enabled.</p>
+
+<p>The two main filters that apply here are Adobe Granite CSRF Filter and Apache Sling Referrer Filter. Find both of these in the configurations, edit them, and remove POST from "Filter Methods".</p>
+
+<h2>Sending access control headers in the servlet</h2>
+
+<p>The servlet only needs to send a header for the POST method that the request is authorized, the CORS configuration will handle OPTIONS. This is what that change looks like:</p>
+
+<pre><code>@Component(service = Servlet.class, immediate = true, property = {
+    Constants.SERVICE_DESCRIPTION + "=Your description",
+    "sling.servlet.paths=/services/yourPath", 
+    "sling.servlet.methods=" + HttpConstants.METHOD_POST
+})
+public class YourServletName extends SlingAllMethodsServlet {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(YourServletName.class);
+
+    private void setAllowOrigin(SlingHttpServletRequest req, SlingHttpServletResponse resp){
+        String fullRequestUrl = req.getRequestURL().toString();
+        String rootOrigin = fullRequestUrl.split("[:]\\d+")[0];
+        if(rootOrigin.contains("localhost")){
+            resp.setHeader("Access-Control-Allow-Origin", String.format("%s:3000", rootOrigin));
+        }
+    }
+
+    @Override
+    protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response) throws ServletException, IOException {
+
+        setAllowOrigin(request, response);
+        // ... your code here
+    }
+}</code></pre>
+
+<p>This handles allowing only requests from localhost:3000 (a React app). If you want to allow all origins, simply set the header to *. If you want to allow a specific origin, then set it to that origin, including http/https at the beggining depending on which is being used.</p>
+
+<h2>It's still not working?</h2>
+
+<p>If you're still experiencing issues with the request like a 403 error response code, then ensure that the cookies are being sent properly and that you're logged into AEM. You'll want to check the HTTP request for a "Cookie" header. Using axios for instance, you have to specify the option <code>withCredentials: true</code>.</p>
+
+<p>If that doesn't fix the issue, it's likely a problem with your servlet configuration, not with CORS or the filters. You'll want to verify that the Access-Control-* headers are coming back with the correct values in both the preflight and the actual request to the servlet.</p>
+    </div>
+  </div>
+  <iframe src="/sections/footer.htm"></iframe>
+</body>
+
+</html>

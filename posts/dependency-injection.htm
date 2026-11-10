@@ -1,0 +1,447 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html style="cursor: crosshair;">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dependency Injection in .NET MVC 5 and WebApi - Tech Blog</title>
+  <meta content="Microsoft FrontPage 4.0" name="GENERATOR">
+  <link rel="stylesheet" type="text/css" href="../assets/styles.css">
+  <link rel="stylesheet" type="text/css" href="../assets/cafes.css">
+  <link rel="stylesheet" type="text/css" href="../assets/blog.css">
+  <script src="../assets/scripts.js"></script>
+</head>
+
+<body style="cursor: crosshair" text="#f7f7ff" vlink="#0000bf" alink="#80c101" link="#00ff00" bgcolor="#000000"
+  background="../assets/bg22[1].jpg">
+  <table cellspacing="0" cellpadding="0" width="100%" border="0" hspace="0" vspace="0">
+    <tbody>
+      <tr>
+        <td width="12" height="12"></td>
+        <td width="100%">
+          <p align="center">
+            <font color="#0000bf"><a href="../index.htm"><img src="../assets/SClogo.gif" align="bottom" border="0" height="153"></a></font>
+          </p>
+        </td>
+        <td width="12" height="12"></td>
+      </tr>
+      <tr>
+        <td valign="top" align="left" width="12"><img style="cursor: crosshair" height="1" hspace="0" src="../assets/1x1.gif" width="12" align="bottom" border="0"></td>
+        <td>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle">&nbsp; <font face="Arial,Helvetica,sans-serif" color="#ffcc99" size="1">&nbsp;&nbsp;&nbsp; </font></td>
+                </tr>
+                <tr>
+                  <td height="11">
+                    <font face="Arial,Helvetica,sans-serif" color="#00ff66" size="1">| <a style="cursor: crosshair" title="House" href="../house.htm" target="_top"><u>House</u></a> | <a style="cursor: crosshair" title="Parking" href="../parking.htm" target="_top"><u>Parking</u></a> | <a style="cursor: crosshair" title="Events" href="../events.htm" target="_top"><u>Events</u></a> | <a style="cursor: crosshair" title="Detroit Events" href="../detroit-events.htm" target="_top"><u>Detroit Events</u></a> | <a style="cursor: crosshair" title="Cafes" href="../cafes.htm" target="_top"><u>Cafes</u></a> | <a style="cursor: crosshair" title="Blogs &amp; Updates" href="../links.htm" target="_top"><u>Blogs &amp; Updates</u></a> | <a style="cursor: crosshair" title="Wtf" href="../about.htm" target="_top"><u>About</u></a> | <a style="cursor: crosshair" title="Blog" href="../blog.htm" target="_top"><u>Blog</u></a> | |</font>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img height="2" src="../assets/05f58020.gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img style="cursor: crosshair" height="2" src="../assets/05f58020(1).gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td height="11"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div align="center">
+    <div class="post-article">
+      <p class="back-link"><a href="../blog.htm">&larr; Back to Blog</a></p>
+      <p class="post-title">Dependency Injection in .NET MVC 5 and WebApi</p>
+      <p class="post-date">Jul 13, 2017</p>
+<h3>Intro</h3>
+Dependency injection is a very popular concept today, usually as part of an MVC web application. Many new frameworks use DI by default, such as AngularJS and .NET Core, but what do those of us working on previous version of .NET MVC do? Well, there's a solution.
+MVC 5 provides many areas where we can inject our own behavior. This is part of the inversion of control philosophy that underlies many libraries. This means that to dependency inject our own services, all we need to do is create our own MVC controller factory and API controller factory, and come up with a method of registering our services.
+This article will lead you through that process, along with full code examples.
+<h3>Getting Started</h3>
+<h4>Solution Structure</h4>
+The structure should be as follows. Each item should be a project of the same name. The <code>YourApp.Web</code> project should be a .NET MVC web project, and all projects should output a DLL with the same name as the project. The remaining projects should be class libraries. <code>Service</code> should reference <code>Interface</code>, <code>Web</code> should reference <code>Service</code> and <code>Windsor</code>.
+<ul>
+ 	<li>YourApp.Interface</li>
+ 	<li>YourApp.Service</li>
+ 	<li>YourApp.Web</li>
+ 	<li>YourApp.Windsor</li>
+</ul>
+<h4>Packages</h4>
+The first thing you will need is to download a few packages. We will be using <code>Castle.Windsor</code> as our DI container library. Find this package on NuGet and add it to your project.
+
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/CasltWindsor-NuGet-1024x291-1.png"><img src="http://examiningeverything.com/wp-content/uploads/CasltWindsor-NuGet-1024x291-1.png" alt="Castle Windsor NuGet" width="1075" height="306"></a><small>Castle Windsor NuGet</small></div>
+<h4>Structure</h4>
+In order for DI to be effective, you will need a services "layer" that contains your business logic. This layer should be made of classes which handle your business logic. For the purpose of this example, we will use the interface and implementation below for a single injected service.
+This file should go in <code>YourApp.Interface</code>.
+<pre><code>namespace YourApp.Interface {
+    public interface IDemoService {
+        string SayHello();
+    }
+}</code></pre>
+This file should go in <code>YourApp.Service</code>.
+<pre><code>namespace YourApp.Service {
+    public class DemoService : IDemoService {
+        public string SayHello(){
+            return "Hello";
+        }
+    }
+}</code></pre>
+<h4>Web Config</h4>
+You will need to add this section to your web config.
+<pre><code>&lt;section name="castle" type="Castle.Windsor.Configuration.AppDomain.CastleSectionHandler, Castle.Windsor" /&gt;
+</code></pre>
+You will need to add this information under the <code>castle</code> section. Add one component tag for each service you will be using. You can set the lifestyle as transient for now.
+<pre><code>&lt;castle&gt;
+    &lt;components&gt;
+      &lt;component id="Demo" service="YourApp.Service.IDemoService, YourApp.Interface" type="YourApp.Service.DemoService, YourApp.Service" lifestyle="transient"&gt;&lt;/component&gt;
+    &lt;/components&gt;
+&lt;/castle&gt;
+</code></pre>
+<h3>Defining Dependencies</h3>
+In order for DI to work, we must first define what our dependencies are and what they resolve to. The installer below has been created for this purpose.
+Windsor "installers" register the interfaces and their implementations. In this case, we are registering all controllers, all API controllers, and anything in our app configuration file (services above).
+The configuration for the <code>IActionInvoker</code> is a little more special. What we're doing here is specifying our own custom implementation, as well as passing a parameter to the constructor (the parameter is the DI container). You'll see why we have to do this later.
+There are two methods. One registers for the current assembly, which we won't be using. The other registers using a specified assembly, which we will pass from our web project. The second method is the one you should be concerned with. The first is just a default which implements the necessary interface.
+<pre><code>using Castle.MicroKernel.Registration;
+using Castle.MicroKernel.SubSystems.Configuration;
+using Castle.Windsor;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Web;
+using System.Web.Http.Controllers;
+using System.Web.Mvc;
+namespace YourApp.Windsor {
+    public class ServiceInstaller : IWindsorInstaller {
+        public void Install(IWindsorContainer container, IConfigurationStore store) {
+            container.Register(Classes.FromThisAssembly()
+                   .BasedOn&lt;IController&gt;().LifestyleTransient());
+            container.Register(Classes.FromThisAssembly()
+                   .BasedOn&lt;IHttpController&gt;().LifestyleTransient());
+            container.Register(Classes.FromThisAssembly()
+                   .BasedOn&lt;FilterAttribute&gt;().LifestyleTransient());
+            container.Register(Component.For&lt;IActionInvoker&gt;()
+                   .ImplementedBy&lt;WindsorActionInvoker&gt;()
+                   .DependsOn(
+                      Dependency.OnValue("container", container)
+                   ).LifestyleTransient());
+            container.Install(Castle.Windsor.Installer.Configuration.FromAppConfig());
+        }
+        public void InstallFromAssembly(
+           IWindsorContainer container,
+           IConfigurationStore store,
+           Assembly assembly
+        ) {
+            container.Register(Classes.FromAssembly(assembly)
+                   .BasedOn&lt;IController&gt;().LifestyleTransient());
+            container.Register(Classes.FromAssembly(assembly)
+                   .BasedOn&lt;IHttpController&gt;().LifestyleTransient());
+            container.Register(Classes.FromAssembly(assembly)
+                   .BasedOn&lt;FilterAttribute&gt;().LifestyleTransient());
+            container.Register(Component.For&lt;IActionInvoker&gt;()
+                   .ImplementedBy&lt;WindsorActionInvoker&gt;()
+                   .DependsOn(
+                      Dependency.OnValue("container", container)
+                   ).LifestyleTransient());
+            container.Install(Castle.Windsor.Installer.Configuration.FromAppConfig());
+        }
+    }
+}
+</code></pre>
+Of course, this is just the base class. We'll inherit from this to pass in our web assembly during installation.
+The class below is the installer which will actually be called when the Windsor container is initialized.
+<pre><code>using Castle.MicroKernel.Registration;
+using Castle.MicroKernel.SubSystems.Configuration;
+using Castle.Windsor;
+using YourApp.Interface;
+using YourApp.Windsor;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Web;
+using System.Web.Http.Controllers;
+using System.Web.Mvc;
+namespace YourApp.Web.Windsor {
+    public class WebServiceInstaller : ServiceInstaller, IWindsorInstaller {
+        new public void Install(IWindsorContainer container, IConfigurationStore store) {
+            InstallFromAssembly(container, store, Assembly.GetExecutingAssembly());
+        }
+    }
+}
+</code></pre>
+Now we just need to call our installer from the application start method in <code>global.asax.cs</code>.
+<pre><code>protected void Application_Start() {
+    // install windsor (find our class which implements IWindsorInstaller, and calls the Install method)
+    Container = new WindsorContainer();
+    Container.Install(FromAssembly.This());
+}
+</code></pre>
+<h3>Replacing the Controller Factory</h3>
+ASP.NET MVC uses a controller factory to create instances of each controller when the application receives a request. This is what we will be replacing. Our new factory will resolve the controller type using our DI container, which will inject the services into the constructor.
+<h4>Creating the New Factory</h4>
+The new factory is pretty simple. When a controller is done being used, we release it from our container. When a controller is created, we resolve the dependencies through our container, and continue on as usual, calling the default factory methods.
+<pre><code>using Castle.MicroKernel;
+using Castle.Windsor;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Routing;
+namespace YourApp.Windsor {
+    public class WindsorControllerFactory : DefaultControllerFactory {
+        private readonly IWindsorContainer _Container;
+        public WindsorControllerFactory(IWindsorContainer container) {
+            _Container = container;
+        }
+        public override void ReleaseController(IController controller) {
+            _Container.Release(controller);  // The important part: release the component
+        }
+        protected override IController GetControllerInstance(
+            RequestContext requestContext,
+            Type controllerType
+        ) {
+            if (controllerType == null) {
+                throw new HttpException(404,
+                  string.Format(
+                      "The controller for path '{0}' could not be found.",
+                      requestContext.HttpContext.Request.Path
+                ));
+            }
+            Controller controller = (Controller)_Container.Resolve(controllerType);
+            // new code
+            if (controller != null) {
+                // Don't worry about this yet. This will help us inject
+                //dependencies into our action filters later
+                controller.ActionInvoker = _Container.Resolve&lt;IActionInvoker&gt;();
+            }
+            return controller;
+        }
+    }
+}
+</code></pre>
+The above code follows the same process as the default controller factory that .NET provides, except that it uses the DI container to resolve the controller. The <code>Resolve</code> method is what injects our dependencies into the constructor.
+<h4>Modify the Application Start</h4>
+Now that we have this new controller factory, how will we use it? .NET MVC provides a point of extensibility for this, so we will add it there. Here is the code for this.
+<pre><code>protected void Application_Start() {
+    // install windsor
+    Container = new WindsorContainer();
+    Container.Install(FromAssembly.This());
+    // use new controller factory
+    ControllerBuilder.Current.SetControllerFactory(new WindsorControllerFactory(Container));
+}
+</code></pre>
+<h3>Replacing the Action Invoker</h3>
+The action invoker is the class which determines how actions are called on a controller. This is the point of extensibility where we will dependency inject properties into the filters.
+There is one issue however: by this point in the request lifecycle the action filter objects have already been created, so we can't use the DI container <code>Resolve</code> method to inject the properties into the constructor.
+To solve this problem, we will use the extension method below, which injects the services into an action filter for every matching public property.
+<pre><code>using Castle.MicroKernel;
+using Castle.MicroKernel.ComponentActivator;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Web;
+namespace YourApp.Windsor {
+    public static class WindsorExtension {
+        public static void InjectProperties(this IKernel kernel, object target) {
+            var type = target.GetType();
+            var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var property in props) {
+                if (property.CanWrite &amp;&amp; kernel.HasComponent(property.PropertyType)) {
+                    var value = kernel.Resolve(property.PropertyType);
+                    try {
+                        property.SetValue(target, value, null);
+                    } catch (Exception ex) {
+                        var message = string.Format(
+                            @"Error setting property {0} on type {1}.
+                            See inner exception for more information.",
+                            property.Name, type.FullName
+                        );
+                        throw new ComponentActivatorException(message, ex, null);
+                    }
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<h4>Creating the New Action Invoker</h4>
+Now we can use this new extension method to loop through the already created action filters and inject their properties, continuing with the default invoke call after we've finished injecting our services.
+<pre><code>using Castle.Windsor;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+namespace YourApp.Windsor {
+    public class WindsorActionInvoker : ControllerActionInvoker {
+        readonly IWindsorContainer container;
+        public WindsorActionInvoker(IWindsorContainer container) {
+            this.container = container;
+        }
+        protected override ActionExecutedContext InvokeActionMethodWithFilters(
+                ControllerContext controllerContext,
+                IList filters,
+                ActionDescriptor actionDescriptor,
+                IDictionary&lt;string, object&gt; parameters) {
+            foreach (IActionFilter actionFilter in filters) {
+                container.Kernel.InjectProperties(actionFilter);
+            }
+            return base.InvokeActionMethodWithFilters(
+                controllerContext,
+                filters,
+                actionDescriptor,
+                parameters
+            );
+        }
+        protected override AuthorizationContext InvokeAuthorizationFilters(
+           ControllerContext controllerContext,
+           IList filters,
+           ActionDescriptor actionDescriptor
+        ) {
+            foreach (IAuthorizationFilter authFilter in filters) {
+                container.Kernel.InjectProperties(authFilter);
+            }
+            return base.InvokeAuthorizationFilters(
+                controllerContext,
+                filters,
+                actionDescriptor
+            );
+        }
+    }
+}
+</code></pre>
+<h4>Using the New Action Invoker</h4>
+The controller factory has already been set up to use the new action invoker. That's what the mysterious line was near the end of our controller factory. To recap, that was this:
+<code>controller.ActionInvoker = _Container.Resolve&lt;IActionInvoker&gt;();</code>.
+The <code>_Container.Resolve</code> call correctly calls our custom action invoker because we registered it in our installer at the beginning of the tutorial.
+<h3>Replacing the WebApi Dependency Resolver</h3>
+The .NET WebApi does not use the same concept of a controller factory (or at least all attempts to use it for DI have been unsuccessful). Instead, we will replace the default dependency resolver with our own.
+<h4>Creating the New Dependency Resolver</h4>
+Given that the dependency resolver for .NET WebApi is very similar to what any other DI container does, it is very easy to replace this with our own, using our Windsor DI container instead.
+<pre><code>using Castle.MicroKernel;
+using Castle.Windsor;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Http.Dependencies;
+namespace YourApp.Windsor {
+    public class WindsorDependencyResolver : System.Web.Http.Dependencies.IDependencyResolver {
+        private readonly IWindsorContainer _container;
+        public WindsorDependencyResolver(IWindsorContainer container) {
+            if (container == null) {
+                throw new ArgumentNullException("container");
+            }
+            _container = container;
+        }
+        public object GetService(Type t) {
+            return _container.Kernel.HasComponent(t) ? _container.Resolve(t) : null;
+        }
+        public IEnumerable&lt;object&gt; GetServices(Type t) {
+            return _container.ResolveAll(t).Cast&lt;object&gt;().ToArray();
+        }
+        public IDependencyScope BeginScope() {
+            return new WindsorDependencyScope(_container);
+        }
+        public void Dispose() {
+        }
+    }
+}
+<code></code></code></pre>
+<h4>Updating the Application Start</h4>
+To add our new resolver to the WebApi, we again find ourselves in the application start. here we can set our new resolver.
+<pre><code>protected void Application_Start() {
+    // install windsor
+    Container = new WindsorContainer();
+    Container.Install(FromAssembly.This());
+    // resolve references for API controllers
+    // adding a collection sub-resolver resolves things like List when you've only mapped Type.
+    // thismay not be needed, but you should test your code with and without it to be sure
+    Container.Kernel.Resolver.AddSubResolver(new CollectionResolver(Container.Kernel, true));
+    // replace actual dependency resolver with our own
+    var dependencyResolver = new WindsorDependencyResolver(Container);
+    GlobalConfiguration.Configuration.DependencyResolver = dependencyResolver;
+    // use new controller factory
+    ControllerBuilder.Current.SetControllerFactory(new WindsorControllerFactory(Container));
+}
+</code></pre>
+<h3>Update the Application Code</h3>
+Our solution is now ready for dependency injection, but our controllers and actions do not yet have properties to dependency inject into. We will show the updated structure of our controller and action filter classes.
+<h4>Updating Controllers</h4>
+Adding DI to our controllers is pretty easy. Our new controller factory will look for a constructor to inject the services into, matching any types with the services we specified. In this case, that's our demo service. Our new controller constructor will look like this.
+<pre><code>using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Security;
+using YourApp.Interface;
+namespace YourApp.Web.Controllers {
+    public class HomeController : BaseController {
+        private readonly IDemoService _DemoService;
+        public HomeController() {
+        }
+        public HomeController(IDemoService demoService) {
+            _DemoService = demoService;
+        }
+        //... actions here
+    }
+}
+</code></pre>
+You can now reference <code>_DemoService</code> in any of your action methods. You can also easily replace the implementation, or add new services to be injected into the constructor.
+<h4>Updating Action Filters</h4>
+If you remember, our action filters have already been instantiated by the time we can inject the properties, so we had to create an extension method to do this. This problem also rules out using constructor injection, so we will take a different approach: property injection. Here is how that looks for a simple filter.
+<pre><code>using YourApp.Interface;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web.Mvc;
+namespace YourApp.Web
+{
+    public class LayoutFilterAttribute : ActionFilterAttribute {
+        // this property is filled in with our service by our special IActionInvoker
+        public IDemoService _DemoService { get; set; }
+        public LayoutFilterAttribute()
+        {
+        }
+        public override void OnActionExecuted(ActionExecutedContext filterContext)
+        {
+            // inject data into layout
+            filterContext.Controller.ViewBag.message = _DemoService.SayHello();
+        }
+    }
+}
+</code></pre>
+<h3>Conclusion</h3>
+So that's all there is to it! It can be quite a lengthy process, but it's well worth the results, especially if upgrading to .NET Core is not an option, but you'd like to have fine control over your DI process.
+The code given here is highly re-usable. If done correctly, you should have a <code>YourApp.Windsor</code> project that you can use in all .NET MVC 5 or WebApi projects for DI, which you can build and use as a dependency for any number of projects without modification.
+DI will definitely help you more loosely couple the components of your application, as well as making changes in your application code much easier. You can also dependency inject services into your services, data access objects into your data access layer, and so on, making the pattern highly beneficial, especially when an application may use several implementations of the same service, or may be moved to another data store in the future. DI is good programming practice, and moreover it makes code much more pleasant to work in, and much easier to understand.
+Another good takeaway is .NET's approach to frameworks. They use inversion of control heavily, so there is always a point of extensibility that you can override to provide your own custom functionality. If you ever find yourself wishing a .NET library worked differently, remember: Microsoft has probably left the library heavily open to extension, so there's no need to force it to do your bidding.
+That's all. I hope this becomes very useful in many people's projects, it definitely has been for me.
+    </div>
+  </div>
+  <iframe src="/sections/footer.htm"></iframe>
+</body>
+
+</html>

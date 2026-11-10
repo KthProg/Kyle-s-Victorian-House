@@ -1,0 +1,175 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html style="cursor: crosshair;">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>What does a good automated test look like? - Tech Blog</title>
+  <meta content="Microsoft FrontPage 4.0" name="GENERATOR">
+  <link rel="stylesheet" type="text/css" href="../assets/styles.css">
+  <link rel="stylesheet" type="text/css" href="../assets/cafes.css">
+  <link rel="stylesheet" type="text/css" href="../assets/blog.css">
+  <script src="../assets/scripts.js"></script>
+</head>
+
+<body style="cursor: crosshair" text="#f7f7ff" vlink="#0000bf" alink="#80c101" link="#00ff00" bgcolor="#000000"
+  background="../assets/bg22[1].jpg">
+  <table cellspacing="0" cellpadding="0" width="100%" border="0" hspace="0" vspace="0">
+    <tbody>
+      <tr>
+        <td width="12" height="12"></td>
+        <td width="100%">
+          <p align="center">
+            <font color="#0000bf"><a href="../index.htm"><img src="../assets/SClogo.gif" align="bottom" border="0" height="153"></a></font>
+          </p>
+        </td>
+        <td width="12" height="12"></td>
+      </tr>
+      <tr>
+        <td valign="top" align="left" width="12"><img style="cursor: crosshair" height="1" hspace="0" src="../assets/1x1.gif" width="12" align="bottom" border="0"></td>
+        <td>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle">&nbsp; <font face="Arial,Helvetica,sans-serif" color="#ffcc99" size="1">&nbsp;&nbsp;&nbsp; </font></td>
+                </tr>
+                <tr>
+                  <td height="11">
+                    <font face="Arial,Helvetica,sans-serif" color="#00ff66" size="1">| <a style="cursor: crosshair" title="House" href="../house.htm" target="_top"><u>House</u></a> | <a style="cursor: crosshair" title="Parking" href="../parking.htm" target="_top"><u>Parking</u></a> | <a style="cursor: crosshair" title="Events" href="../events.htm" target="_top"><u>Events</u></a> | <a style="cursor: crosshair" title="Detroit Events" href="../detroit-events.htm" target="_top"><u>Detroit Events</u></a> | <a style="cursor: crosshair" title="Cafes" href="../cafes.htm" target="_top"><u>Cafes</u></a> | <a style="cursor: crosshair" title="Blogs &amp; Updates" href="../links.htm" target="_top"><u>Blogs &amp; Updates</u></a> | <a style="cursor: crosshair" title="Wtf" href="../about.htm" target="_top"><u>About</u></a> | <a style="cursor: crosshair" title="Blog" href="../blog.htm" target="_top"><u>Blog</u></a> | |</font>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img height="2" src="../assets/05f58020.gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img style="cursor: crosshair" height="2" src="../assets/05f58020(1).gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td height="11"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div align="center">
+    <div class="post-article">
+      <p class="back-link"><a href="../blog.htm">&larr; Back to Blog</a></p>
+      <p class="post-title">What does a good automated test look like?</p>
+      <p class="post-date">Jun 28, 2021</p>
+<p>Recently, I did a large refactor to a core component of an e-commerce SPA web application in React. Notably, nothing in the functionality was being changed, this was just a code cleanup, and the goal would be for all of the original tests to pass after the changes were made.</p>
+
+<p>Yet, not one single automated test passed after the refactor was completed. It's not that anything was wrong with the changes, the component worked perfectly. Every piece of functionality worked exactly the same. It was the <em>tests</em> that were the problem.</p>
+
+<p>This got me thinking, how do we know what is or isn't a good test? How can we write tests so that they don't break when code is moved around or renamed? That's going to be the subject of this post.</p>
+
+<h2>Some definitions</h2>
+
+<p>Let's start by defining some key words around testing. This is going to allow us to grasp on a more abstract level what a test is and should do, and help us set the foundation for an intuitive sense of what is or isn't a good test.</p>
+
+<p>If you're familiar with most of these terms or just want to skip to the conclusion, feel free to go to the "What makes a test bad?" section.</p>
+
+<h3>Features</h3>
+
+<p>First off, we have to ask what it is we're actually testing. At the end of the day, we want our features to work, this is the business ask that we are completing. Features however, can almost never be tested in a few simple cases. Generally, there are several different flows the user can go through for a given feature.</p>
+
+<h3>User story</h3>
+
+<p>In the traditional use of the word, a user story is a flow that the user can go through to complete some action, and features are broken down into the various user stories. For instance, if a user can select a cash payment plan and continue, versus calculating a finance plan, adding it and then continuing, we have two different user stories for financing a purchase.</p>
+
+<h3>Test case</h3>
+
+<p>Now we get to the fundamental unit of testing, the test case. This is one particular instance of one particular flow (user story) in a feature. In other words, there can be multiple (in fact infinite usually) test cases for a particular user story.</p>
+
+<p>For instance, a user could select their finance plan in the story above, and set the deposit to $5,000, or they could set it to $50,000, the second case might test a situation in which the user's deposit is too high. This is an example of two test cases for one user story.</p>
+
+<h2>Types of tests</h2>
+
+<p>It's important to know what kinds of tests exist so that you can write your tests well for that particular type of test. While writing tests, keep in mind the test type outlined below and what the purpose of each test type is. There is some ambiguity in all of these terms, so don't worry if there seems to be some overlap.</p>
+
+<h3>Unit test</h3>
+
+<p>First off we have unit tests. Unit tests test one specific <em>unit</em> of the code. This usually means one method, or even one branch of a method. The goal of these tests is to ensure that inputs produce the expected outputs, and to reach as many branches of code as possible. These do not typically require formal test cases to document.</p>
+
+<h3>Functional test</h3>
+
+<p>Functional tests test a specific piece of functionality, and they are usually one-to-one with the test cases as outlined above. This means it tests a single user flow of one part of a feature. Rather than trying to cover all branches of code, these tests typically try to cover the most important and common use cases.</p>
+
+<h3>Integration test</h3>
+
+<p>These are similar to unit tests, but they test several units working in cohesion. Like unit tests, this typically refers to units of code such as a method, module, etc. In the previous example, this could be like testing that your finance API applies finance data correctly to a user's cart when they select a variety of products from a product feed. The two units being integrated are the finance and product APIs.</p>
+
+<h2>What is the goal of a test?</h2>
+
+<p>To know how to write good tests, we should know what they are actually supposed to accomplish, then we can define guidelines which help point us in the right direction.</p>
+
+<h3>Prevent regressions</h3>
+
+<p>We don't want new features to break old code, so we have to test that the basic functionality works with every major change. These are the most basic and fundamental types of tests.</p>
+
+<h3>Validate new features</h3>
+
+<p>Tests should cover as many cases as possible so that code is known to behave according to the business requirements before it sees a QA environment.</p>
+
+<h3>Catch mistakes and improve code quality</h3>
+
+<p>Tests are also there to CYA if you make a silly typo or forget something obvious while you're working in the code base. Small mistakes like this shouldn't end up in QA.</p>
+
+<p>On the code quality side, writing tests will often cause you to consider cases which were previously not considered, as you write a test and notice that there are other options available and paths that could be taken. Writing things out formally in test cases helps with this.</p>
+
+<h2>What makes a test bad?</h2>
+
+<p>So given all of this, why were the tests I worked on <em>so</em> bad? How could the same problem be avoided in the future?</p>
+
+<h3>Tested internal implementation, not functionality</h3>
+
+<p>It's often okay for unit tests to test the specific implementation of a feature, especially in libraries that change infrequently. However, if you're doing front-end work, or any kind of web or SPA application, your code <em>will</em> change frequently, or it will eventually fall apart. <strong>You're not agile if your tests are preventing code changes.</strong></p>
+
+<p>In the case of the tests I reworked, each test modified the internal state of a UI component, then checked that specific parts of specific methods were called with specific values, then checked the internal state of the UI component again.</p>
+
+<p>This is awful because these tests should have been functional tests, not unit tests. You have to consider the goal of the tests you're writing. In the case of UI work, the goal is not to check the inputs and outputs of a component's methods, nor is it to check the internal values of your UI code. The goal is to test the functionality of the component, because the internal implementation of that functionality is a detail that is unimportant at the end of the day. Business does not care how your code is written, users do not care how your code is written. Everyone cares if it meets the stated requirements.</p>
+
+<p>This internal testing of the component's methods made it extremely fragile, and as soon as it was refactored and the internal representation changed and became inaccessible, all the tests failed despite the functionality remaining the same.</p>
+
+<h3>Tested the way the code was written, not functionality</h3>
+
+<p>Similar to the last section but a bit different, rather than testing a single test case, such as a user entering a certain deposit, tests had names like "set deposit, state set and methods called as expected".</p>
+
+<p>No-one on Earth can tell what this means. No-one has a clue if this test passing means anything, and I certainly couldn't rewrite this test to pass once the code was changed. Tests have to be meaningful and reflect functionality that can be tested regardless of the way the code is structured internally.</p>
+
+<p>The assertions for these types of tests often just duplicated the code itself, checking that functions were called in a certain order with certain parameters.</p>
+
+<h3>Tested the libraries being used, not the domain specific code</h3>
+
+<p>The tests tended to test things like state being set by React, or props being passed through correctly. You do not need to test your underlying libraries, especially when they have a massive development team behind them, <em>test the domain-specific code</em>. Validating that <code>setState</code> works or <code>Date.toString()</code> formats correctly is the job of Facebook and Chrome respectively.</p>
+
+<h2>What makes a test good?</h2>
+
+<p>Well let's summarize. And keep in mind, we're talking about automated tests for a UI-heavy application. These rules are not going to apply for dishwasher microprocessor code.</p>
+
+<ul><li>Tests should be written with their purpose in mind</li><li>Tests should test domain-specific code</li><li>Tests should be associated with user interactions / feature functionality</li><li>Tests should not duplicate the codebase or test implementation details</li><li>Tests should not be fragile</li></ul>
+
+<p>The last one is bit of an art more than a science, but if you find that you're constantly rewriting tests when the functionality hasn't changed, that's a strong sign that something is wrong with your tests.</p>
+
+<h2>How would I fix these tests?</h2>
+
+<p>Well looking at the bullet points above and the "TO-NOT-DO" list below it here's what I would do.</p>
+
+<ul><li>I would focus on the functionality of the component and the features it implements</li><li>I would test only the code that is specific to the application</li><li>I would clearly label what the test is doing, and what the expected outcome is</li><li>I would not test that specific code is being ran in a certain order, unless that is the best way to test underlying functionality</li><li>I would not test the internal state of the component, i.e. things not visible to the end user</li></ul>
+
+<p>I hope this helps! There is a lot more detail and nuance to go into, and many books have been written on just this topic, but hopefully this provides a good synopsis of common problems when automating UI tests, without going into technical details that can be very different from project to project. As always feel free to leave feedback or to reach out with any questions.</p>
+    </div>
+  </div>
+  <iframe src="/sections/footer.htm"></iframe>
+</body>
+
+</html>

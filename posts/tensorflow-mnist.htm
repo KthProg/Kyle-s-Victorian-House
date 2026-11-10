@@ -1,0 +1,202 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html style="cursor: crosshair;">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Digit Classification with TensorFlow and the MNIST Dataset - Tech Blog</title>
+  <meta content="Microsoft FrontPage 4.0" name="GENERATOR">
+  <link rel="stylesheet" type="text/css" href="../assets/styles.css">
+  <link rel="stylesheet" type="text/css" href="../assets/cafes.css">
+  <link rel="stylesheet" type="text/css" href="../assets/blog.css">
+  <script src="../assets/scripts.js"></script>
+</head>
+
+<body style="cursor: crosshair" text="#f7f7ff" vlink="#0000bf" alink="#80c101" link="#00ff00" bgcolor="#000000"
+  background="../assets/bg22[1].jpg">
+  <table cellspacing="0" cellpadding="0" width="100%" border="0" hspace="0" vspace="0">
+    <tbody>
+      <tr>
+        <td width="12" height="12"></td>
+        <td width="100%">
+          <p align="center">
+            <font color="#0000bf"><a href="../index.htm"><img src="../assets/SClogo.gif" align="bottom" border="0" height="153"></a></font>
+          </p>
+        </td>
+        <td width="12" height="12"></td>
+      </tr>
+      <tr>
+        <td valign="top" align="left" width="12"><img style="cursor: crosshair" height="1" hspace="0" src="../assets/1x1.gif" width="12" align="bottom" border="0"></td>
+        <td>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle">&nbsp; <font face="Arial,Helvetica,sans-serif" color="#ffcc99" size="1">&nbsp;&nbsp;&nbsp; </font></td>
+                </tr>
+                <tr>
+                  <td height="11">
+                    <font face="Arial,Helvetica,sans-serif" color="#00ff66" size="1">| <a style="cursor: crosshair" title="House" href="../house.htm" target="_top"><u>House</u></a> | <a style="cursor: crosshair" title="Parking" href="../parking.htm" target="_top"><u>Parking</u></a> | <a style="cursor: crosshair" title="Events" href="../events.htm" target="_top"><u>Events</u></a> | <a style="cursor: crosshair" title="Detroit Events" href="../detroit-events.htm" target="_top"><u>Detroit Events</u></a> | <a style="cursor: crosshair" title="Cafes" href="../cafes.htm" target="_top"><u>Cafes</u></a> | <a style="cursor: crosshair" title="Blogs &amp; Updates" href="../links.htm" target="_top"><u>Blogs &amp; Updates</u></a> | <a style="cursor: crosshair" title="Wtf" href="../about.htm" target="_top"><u>About</u></a> | <a style="cursor: crosshair" title="Blog" href="../blog.htm" target="_top"><u>Blog</u></a> | |</font>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img height="2" src="../assets/05f58020.gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img style="cursor: crosshair" height="2" src="../assets/05f58020(1).gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td height="11"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div align="center">
+    <div class="post-article">
+      <p class="back-link"><a href="../blog.htm">&larr; Back to Blog</a></p>
+      <p class="post-title">Digit Classification with TensorFlow and the MNIST Dataset</p>
+      <p class="post-date">Jun 27, 2017</p>
+<h3>Intro</h3>
+Machine learning has been growing by leaps and bounds in recent years, and with libraries like TensorFlow, it seems like almost anything is possible. One interesting application of neural networks is in classification of handwritten characters – in this case digits.
+This article will go through the fundamentals of creating and using a specific kind of network in TensorFlow: a convolutional neural network. Convolutional neural networks are specialized networks used for image recognition, that perform much better than a vanilla deep neural network.
+<h3>Concepts</h3>
+Before diving into this project, we will need to review some concepts.
+<h4>TensorFlow</h4>
+TensorFlow is more than just a machine learning library, it is actually a library for creating distributed computation graphs, whose execution can be deferred until needed, and stored when not needed.
+TensorFlow works by the creation of calculation graphs. These graphs are stored and executed later, within a "session".
+By storing neural network connection weights as matrices, TensorFlow can be used to create computation graphs which are effectively neural networks. This is the primary use of TensorFlow today, and how we'll be using it in this article.
+<h4>Convolutional Neural Networks</h4>
+Convolutional neural networks are networks based on the physical qualities of the human eye. Information is received as a "block" of data, like an image, and filters are applied across the entire image, which transform the image and reveal features which can be used for classification. For instance, one filter might find round edges, which could indicate a five or a six. Other filters might find straight lines, indicating a one or a seven.
+The weight of these filters are learned as the model receives data, and thus it gets better and better at predicting images, by getting better and better at coaxing features out using its filters.
+There is much more than this to a convolutional neural network, but this will suffice for this article.
+<h3>The Data</h3>
+How do we get the data we'll need to train this network? No problem; TensorFlow provides us some easy methods to fetch the MNIST dataset, a common machine learning dataset used to classify handwritten digits.
+Simply import the input_data method from the TensorFlow MNIST tutorial namespace as below. You will need to reshape the data into a square of 28 by 28, since the original dataset is a flat list of 784 numbers per image.
+<pre><code>from tensorflow.examples.tutorials.mnist import input_data
+mnist = input_data.read_data_sets("/tmp/data")
+test_imgs = mnist.test.images.reshape(-1, 28, 28, 1)
+test_lbls = mnist.test.labels
+train_imgs = mnist.train.images.reshape(-1, 28, 28, 1)
+train_lbls = mnist.train.labels</code>
+</pre>
+<h3>The Network</h3>
+So how might we build such a network? Where do we start? Well lucky for us, TensorFlow provides this functionality out of the box, so there's no need to reinvent the wheel.
+The first thing that must be defined are our input and output variables. For this, we'll use placeholders.
+<pre><code>X = tf.placeholder(tf.float32, shape=(None, 28, 28, 1))
+y = tf.placeholder(tf.int64, shape=(None), name="y")</code>
+</pre>
+Next, we need to define our initial filters. In order to avoid dying/exploding gradients, a truncated normal distribution is recommended for initialization. In our case, we will have two lists of filters for our two convolutional layers.
+<pre><code>filters = tf.Variable(tf.truncated_normal((5,5,1,32), stddev=0.1))
+filters_2 = tf.Variable(tf.truncated_normal((5,5,32,64), stddev=0.1))</code>
+</pre>
+Finally, we need to create our actual convolutional layers. This is done using TensorFlow's <code>tf.nn.conv2d</code> method. We also use a name scope to keep things organized. Note the max pooling layers between convolutional layers. The max pool layers aggregate the image data from each filter using a predefined method, and are not trained. They simply help reduce the complexity of the data by squashing the many layers produced by our filters.
+<pre><code>with tf.name_scope("dnn"):
+    convolution = tf.nn.conv2d(X, filters, strides=[1,2,2,1], padding="SAME")
+    max_pool = tf.nn.max_pool(convolution, ksize=[1,2,2,1], strides=[1,2,2,1], padding="VALID")
+    convolution_2 = tf.nn.conv2d(max_pool, filters_2, strides=[1,2,2,1], padding="SAME")
+    max_pool_2 = tf.nn.max_pool(convolution_2, ksize=[1,2,2,1], strides=[1,2,2,1], padding="VALID")
+    flatten = tf.reshape(max_pool_2, [-1, 2 * 2 * 64])
+    predict = fully_connected(flatten, 1024, scope="predict")
+    keep_prob = tf.placeholder(tf.float32)
+    dropout = tf.nn.dropout(predict, keep_prob)
+    logits = fully_connected(dropout, n_outputs, scope="outputs", activation_fn=None)</code>
+</pre>
+Also note that before our prediction layer, we have to squash down the final max pool output to make predictions at our fully connected layer. You can get the shapes of the various layers as shown below, to figure out what size your various layers need to be.
+<pre><code>print("conv", convolution.get_shape())
+print("max", max_pool.get_shape())
+print("conv2", convolution_2.get_shape())
+print("max2", max_pool_2.get_shape())
+print("flat", flatten.get_shape())
+print("predict", predict.get_shape())
+print("dropout", dropout.get_shape())
+print("logits", logits.get_shape())
+print("logits guess", logits_guess.get_shape())
+print("correct", correct.get_shape())
+print("accuracy", accuracy.get_shape())</code>
+</pre>
+We also apply dropout to avoid overfitting, and do not apply an activation function to our outputs. We will instead calculate the entropy manually at each training step, which improves performance.
+Now to create our training and evaluation layers. We will also namespace these like the previous layers, to make things easier to understand when they are viewed in a visualization tool like TensorBoard.
+Our loss is the average of the cross-entropy between the expected outputs and the output of our logits, this much should make sense.
+For training, we use an Adam optimizer, which is almost always recommended. The learning rate used in this article is 1e-4. This is the same learning rate that is used for TensorFlow's own "expert" <a href="https://www.tensorflow.org/get_started/mnist/pros">tutorial on MNIST</a>.
+Our evaluation is a little more complicated. Since we are training with batches, we need to get the output for each item in the batch. We do this by applying <code>tf.argmax</code> to every output list using <code>tf.map_fn</code>. Then, we compare the guesses to the actual values using <code>tf.equal</code>. Our accuracy is the average number of correct predictions (i.e., the percentage of numbers we classified correctly).
+<pre><code>with tf.name_scope("loss"):
+    xentropy = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y, logits=logits)
+    loss = tf.reduce_mean(xentropy, name="loss")
+with tf.name_scope("train"):
+    optimizer = tf.train.AdamOptimizer(learning_rate)
+    training_op = optimizer.minimize(loss)
+with tf.name_scope("eval"):
+    logits_guess = tf.cast(tf.map_fn(tf.argmax, logits, dtype=tf.int64), tf.int64)
+    correct = tf.equal(logits_guess, y)
+    accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
+init = tf.global_variables_initializer()</code>
+</pre>
+To actually train the network, we will need to run through the data several times, running a batch at every iteration. In this case, we will aim for 20,000 iterations. To calculate how many epochs we will need for our batch size, we use the following code.
+<pre><code>keep_prob_num = 0.5
+batch_size = 50
+goal_iterations = 20000
+iterations = mnist.train.num_examples // batch_size
+epochs = int(goal_iterations / iterations) # so that total iterations ends up being around goal_iterations</code>
+</pre>
+Now to actually run the training operation on our graph.
+<pre><code>with tf.Session() as sess:
+    sess.run(init)
+    for i in range(epochs):
+        for iteration in range(iterations):
+            X_batch, y_batch = mnist.train.next_batch(batch_size)
+            X_batch_shaped = X_batch.reshape(X_batch.shape[0], 28, 28, 1)
+            sess.run(training_op, feed_dict = {
+                X: X_batch_shaped,
+                y: y_batch,
+                keep_prob: keep_prob_num})
+            print("epoch:",i)
+            print("iteration:", iteration)</code>
+</pre>
+It's also recommended that you save the model and evaluate the accuracy at every epoch. You can accomplish this with the following code.
+<strong>Evaluating</strong>
+<pre><code>accuracy_val = sess.run(accuracy, feed_dict = {
+                   X: train_imgs,
+                   y: train_lbls,
+                   keep_prob: 1.0})
+print("accuracy:", accuracy_val)</code>
+</pre>
+<strong>Saving</strong>
+<pre><code>saver = tf.train.Saver()
+saver.save(sess, save_path)</code>
+</pre>
+After running this model through all epochs and iterations, your accuracy should be around 99.2%. Let's check that.
+<pre><code>with tf.Session() as sess:
+    saver.restore(sess, save_path) #assume you've saved model, but could run in same session immediately after training
+    accuracy_val = sess.run(accuracy, feed_dict = {
+                       X: test_imgs,
+                       y: test_lbls,
+                       keep_prob: 1.0}) # test accuracy
+    t_accuracy_val = sess.run(accuracy, feed_dict = {
+                         X: train_imgs,
+                         y: train_lbls,
+                         keep_prob: 1.0}) # training accuracy
+    print("accuracy:", accuracy_val)
+    print("train accuracy:", t_accuracy_val)</code>
+</pre>
+Of course, in the above, the test accuracy is what's most important, as we want our model to generalize to new data.
+<h3>Improvements</h3>
+There are several steps you can take to improve on this model. One step is to apply affine transformations to the images, creating additional images similar but slightly different than the originals. This helps account for handwriting with various "tilts" and other tendencies.
+You can also train several of the same network, and have them make the final prediction together, averaging the predictions or choosing the prediction with the highest confidence.
+<h3>Conclusion</h3>
+TensorFlow makes digit classification easier than ever. Machine learning is no longer the domain of specialists, but rather should be a tool in the belt of every programmer, to help solve complex optimization, classification, and regression problems for which there is no obvious or cost-effective solution, and for programs which must respond to new information. Machine learning is the way of the future for many problems, and as has been said in another blogger's post: it's <a href="http://karpathy.github.io/2015/05/21/rnn-effectiveness/">unreasonably effective</a>.
+    </div>
+  </div>
+  <iframe src="/sections/footer.htm"></iframe>
+</body>
+
+</html>

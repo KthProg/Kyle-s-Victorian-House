@@ -1,0 +1,496 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html style="cursor: crosshair;">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cross-platform Image Preview and Capture with Xamarin Forms - Tech Blog</title>
+  <meta content="Microsoft FrontPage 4.0" name="GENERATOR">
+  <link rel="stylesheet" type="text/css" href="../assets/styles.css">
+  <link rel="stylesheet" type="text/css" href="../assets/cafes.css">
+  <link rel="stylesheet" type="text/css" href="../assets/blog.css">
+  <script src="../assets/scripts.js"></script>
+</head>
+
+<body style="cursor: crosshair" text="#f7f7ff" vlink="#0000bf" alink="#80c101" link="#00ff00" bgcolor="#000000"
+  background="../assets/bg22[1].jpg">
+  <table cellspacing="0" cellpadding="0" width="100%" border="0" hspace="0" vspace="0">
+    <tbody>
+      <tr>
+        <td width="12" height="12"></td>
+        <td width="100%">
+          <p align="center">
+            <font color="#0000bf"><a href="../index.htm"><img src="../assets/SClogo.gif" align="bottom" border="0" height="153"></a></font>
+          </p>
+        </td>
+        <td width="12" height="12"></td>
+      </tr>
+      <tr>
+        <td valign="top" align="left" width="12"><img style="cursor: crosshair" height="1" hspace="0" src="../assets/1x1.gif" width="12" align="bottom" border="0"></td>
+        <td>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle">&nbsp; <font face="Arial,Helvetica,sans-serif" color="#ffcc99" size="1">&nbsp;&nbsp;&nbsp; </font></td>
+                </tr>
+                <tr>
+                  <td height="11">
+                    <font face="Arial,Helvetica,sans-serif" color="#00ff66" size="1">| <a style="cursor: crosshair" title="House" href="../house.htm" target="_top"><u>House</u></a> | <a style="cursor: crosshair" title="Parking" href="../parking.htm" target="_top"><u>Parking</u></a> | <a style="cursor: crosshair" title="Events" href="../events.htm" target="_top"><u>Events</u></a> | <a style="cursor: crosshair" title="Detroit Events" href="../detroit-events.htm" target="_top"><u>Detroit Events</u></a> | <a style="cursor: crosshair" title="Cafes" href="../cafes.htm" target="_top"><u>Cafes</u></a> | <a style="cursor: crosshair" title="Blogs &amp; Updates" href="../links.htm" target="_top"><u>Blogs &amp; Updates</u></a> | <a style="cursor: crosshair" title="Wtf" href="../about.htm" target="_top"><u>About</u></a> | <a style="cursor: crosshair" title="Blog" href="../blog.htm" target="_top"><u>Blog</u></a> | |</font>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img height="2" src="../assets/05f58020.gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img style="cursor: crosshair" height="2" src="../assets/05f58020(1).gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td height="11"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div align="center">
+    <div class="post-article">
+      <p class="back-link"><a href="../blog.htm">&larr; Back to Blog</a></p>
+      <p class="post-title">Cross-platform Image Preview and Capture with Xamarin Forms</p>
+      <p class="post-date">May 14, 2019</p>
+<h3>Introduction</h3>
+Recently, we had a need to be able to capture images efficiently and to process those images in Xamarin Forms. We were doing this image processing as part of a label reading view for our app onboarding process.
+This image capture had to be:
+<ol>
+ 	<li>Efficient</li>
+ 	<li>Low-memory</li>
+ 	<li>Simple</li>
+</ol>
+As it turned out, this isn't too hard to do in Xamarin Forms, but there was a lot to learn. This article will walk you through that process so you don't have to find all of this information yourself.
+If you just want the code and you'd rather skip all the explanations, you can find the complete solution on <a href="https://github.com/KthProg/XamarinImageCaptureSample/tree/master/XamarinImageCaptureSample/XamarinImageCaptureSample.Android">my GitHub</a>.
+Because we also process this image for text, I'll be doing a follow-up article on how to do that. The code for the text processing is on my GitHub as well.
+<h3>Custom Renderer (Android)</h3>
+Because camera preview works very differently on iOS and Android, a <a href="https://docs.microsoft.com/en-us/xamarin/xamarin-forms/app-fundamentals/custom-renderer/">custom renderer</a> is needed to implement the different functionality.
+For our purposes, we called this renderer <code>CameraPageRenderer</code>. It renders a full screen preview of the image, with optional informational text.
+The constructor will look like this - we need quite a few handler classes to accomplish our task:
+<pre><code>public CameraPageRenderer(Context context) : base(context) {
+  cameraManager = (CameraManager)Context.GetSystemService(Context.CameraService);
+  windowManager = Context.GetSystemService(Context.WindowService).JavaCast&lt;IWindowManager&gt;();
+  StateCallback = new CameraStateCallback(this);
+  SessionCallback = new CameraCaptureSessionCallback(this);
+  CaptureListener = new CameraCaptureListener(this);
+  CameraImageReaderListener = new CameraImageListener(this);
+  OrientationEventListener = new CameraPageOrientationEventListener(this, Context, global::Android.Hardware.SensorDelay.Normal);
+}</code></pre>
+Definitions for these classes can be found throughout this article or on the <a href="https://github.com/KthProg/XamarinImageCaptureSample/tree/master/XamarinImageCaptureSample/XamarinImageCaptureSample.Android">GitHub repository</a>.
+First, you need to get camera permissions. In order to do this, you will need an event handler in your main activity called <code>OnCameraAccepted</code>.
+<code>public event EventHandler OnCameraAccepted;</code>
+Then you need to override <code>OnRequestPermissionsResult</code>&nbsp;in your main activity and trigger the event:
+<pre><code>public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults){
+  foreach(permission in permissions){
+    if(permission == Manifest.Permission.Camera) OnCameraAccepted(this, null);
+  }
+}</code></pre>
+In your custom renderer for Android, make sure to subscribe to this event before checking permissions. If you have permissions, simply call your <code>StartCamera</code>&nbsp;code immediately. In our case, we'll be doing this in the <code>OnSurfaceTextureAvailable</code>&nbsp;method:
+<pre><code>public void OnSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+  Surface = surface; // store our surface in our renderer
+  // if the camera permission has to be accepted, then
+  // the camera will be started when that happens.
+  (CurrentContext as MainActivity).OnCameraAccepted += StartCamera;
+  if (ContextCompat.CheckSelfPermission(CurrentContext, Manifest.Permission.Camera) != Permission.Granted) {
+    ActivityCompat.RequestPermissions(CurrentContext, new string[] { Manifest.Permission.Camera }, 1);
+  } else {
+    StartCamera();
+  }
+}</code></pre>
+Our <code>StartCamera</code>&nbsp;method should look something like this. Error handling and particulars of our application have been left out, and the constant <code>LabelReaderConstants.MinimumUsefulImageWidthPixels</code> should be replaced with your own:
+<pre><code>public void StartCamera(object sender = null, EventArgs args = null) {
+  string cameraId =
+    GetCameraIdForOrientation(LensFacing.Back) ??
+    GetCameraIdForOrientation(LensFacing.Front) ??
+    GetCameraIdForOrientation(LensFacing.External);
+  CameraCharacteristics characteristics = cameraManager.GetCameraCharacteristics(cameraId);
+  sensorOrientation = (int)characteristics.Get(CameraCharacteristics.SensorOrientation); // store the orientation for later use
+  SetupPreviewMatrix();
+  // get the best size based on some minimum width for processing
+  var map = (StreamConfigurationMap)characteristics.Get(CameraCharacteristics.ScalerStreamConfigurationMap);
+  global::Android.Util.Size[] outputSizes = map.GetOutputSizes((int)ImageFormatType.Jpeg);
+  IEnumerable&lt;global::Android.Util.Size&gt; bigSizes = outputSizes.Where(size =&gt; size.Width &gt;= LabelReaderConstants.MinimumUsefulImageWidthPixels);
+  if (!bigSizes.Any()) {
+    bestWidth = outputSizes.Max(size =&gt; size.Width);
+  } else { // use the biggest if none fit our goal width
+    bestWidth = bigSizes.Min(size =&gt; size.Width);
+  }
+  global::Android.Util.Size bestSize = outputSizes.First(size =&gt; size.Width == bestWidth);
+  // set our reader, add a listener for new images
+  Reader = ImageReader.NewInstance(bestSize.Width, bestSize.Height, ImageFormatType.Jpeg, 2);
+  Reader.SetOnImageAvailableListener(CameraImageReaderListener, null);
+  // finally, open the camera
+  cameraManager.OpenCamera(cameraId, StateCallback, null);
+}</code></pre>
+Here are the two methods referenced in the code above:
+<pre><code>private string GetCameraIdForOrientation(LensFacing facingToMatch) {
+  CameraCharacteristics characteristics = null;
+  return cameraManager.GetCameraIdList().FirstOrDefault(id =&gt; {
+    characteristics = cameraManager.GetCameraCharacteristics(id);
+    int lensFacing = (int)characteristics.Get(CameraCharacteristics.LensFacing);
+    return lensFacing == (int)facingToMatch;
+  });
+}
+public void SetupPreviewMatrix() {
+  float landscapeScreenRotation = 0.0f;
+  if(windowManager.DefaultDisplay.Rotation == SurfaceOrientation.Rotation270) {
+    landscapeScreenRotation = 180.0f;
+  }
+  float width = mainLayout.Width;
+  float height = mainLayout.Height;
+  Matrix matrix = new Matrix();
+  matrix.PostRotate(360.0f - landscapeScreenRotation - sensorOrientation, width / 2.0f, height / 2.0f);
+  if (sensorOrientation != 180) {
+    matrix.PostScale(width / height, height / width, width / 2.0f, height / 2.0f);
+  }
+  LiveView.SetTransform(matrix);
+}</code></pre>
+<code>SetupPreviewMatrix</code>&nbsp;applies transforms to the image preview layer that will ensure it is oriented correctly for the user that is viewing it. This code only handles landscape as that's all that was required for our project.
+Opening the camera will trigger the state callback, which is where we'll start the session and set our capture options for the preview:
+<pre><code>public class CameraStateCallback : CameraDevice.StateCallback {
+  private readonly CameraPageRenderer _renderer;
+  public CameraStateCallback(CameraPageRenderer renderer) {
+    _renderer = renderer;
+  }
+  public override void OnOpened(CameraDevice camera) {
+    // request a preview capture of the camera, and notify the session
+    // that we will be rendering to the image reader, as well as the preview surface.
+    _renderer.Camera = camera; // set our camera
+    var surface = new Surface(_renderer.Surface); // use our stored surface (texture) to render preview
+    _renderer.Builder = camera.CreateCaptureRequest(CameraTemplate.Preview);
+    // auto focus the camera
+    _renderer.Builder.Set(CaptureRequest.ControlAfMode, (int)ControlAFMode.ContinuousVideo);
+    _renderer.Builder.Set(CaptureRequest.ControlAfTrigger, (int)ControlAFTrigger.Start);
+    _renderer.Builder.AddTarget(surface);
+    // start session targeting our image reader and the texture surface
+    camera.CreateCaptureSession(new List&lt;Surface&gt; { surface, _renderer.Reader.Surface }, _renderer.SessionCallback, null);
+  }
+}</code></pre>
+Once the camera is opened it will call our session callback object, which looks like this. The constant <code>LabelReaderConstants.ImageCaptureBeginDelayMilliseconds</code> should be replaced with your own:
+<pre><code>public class CameraCaptureSessionCallback : CameraCaptureSession.StateCallback {
+  private readonly CameraPageRenderer _renderer;
+  public CameraCaptureSessionCallback(CameraPageRenderer renderer) {
+    _renderer = renderer;
+  }
+  public override void OnConfigured(CameraCaptureSession session) {
+    // set a repeating request for a live preview of the camera
+    _renderer.Session = session;
+    CaptureRequest request = _renderer.Builder.Build();
+    _renderer.Request = request;
+    session.SetRepeatingRequest(request, _renderer.CaptureListener, null);
+    _renderer.CaptureImage(); // capture single image for processing
+  }
+}</code></pre>
+You'll notice you need to set a capture listener for the preview images, which you can create as an empty class like this:
+<pre><code>public class CameraCaptureListener : CameraCaptureSession.CaptureCallback {
+}</code></pre>
+The <code>CaptureImage</code>&nbsp;method called after the session is created should look like this:
+<pre><code>public void CaptureImage() {
+  CaptureRequest.Builder builder = Camera.CreateCaptureRequest(CameraTemplate.StillCapture);
+  builder.AddTarget(Reader.Surface);
+  Session.Capture(builder.Build(), CaptureListener, null);
+}</code></pre>
+It simply builds a new request for a single still capture image, targeting the image reader surface. The image reader image ready listener will be called because we set it up in the <code>StartCamera</code>&nbsp;method.
+Here is our image available listener for the image reader. Replace <code>LabelReaderConstants.ImageCaptureDelayMilliseconds</code> with a constant of your own:
+<pre><code>public class CameraImageListener : Java.Lang.Object, ImageReader.IOnImageAvailableListener {
+  private readonly CameraPageRenderer _renderer;
+  public CameraImageListener(CameraPageRenderer renderer) {
+    _renderer = renderer;
+  }
+  public void OnImageAvailable(ImageReader reader) {
+    if (_renderer.CancellationToken.IsCancellationRequested) { return; }
+    // get the byte array data from the first plane
+    // of the image. This is sufficient for a JPEG
+    // image
+    Image image = reader.AcquireLatestImage();
+    if (image != null) {
+      Image.Plane[] planes = image.GetPlanes();
+      ByteBuffer buffer = planes[0].Buffer;
+      byte[] bytes = new byte[buffer.Capacity()];
+      buffer.Get(bytes);
+      // close the image so we can handle another image later
+      image.Close();
+      (_renderer.Element as LabelReader)?.ProcessPhoto(bytes);
+      _renderer.CurrentContext.RunOnUiThread(async () =&gt; {
+        try {
+          await Task.Delay(LabelReaderConstants.ImageCaptureDelayMilliseconds, _renderer.CancellationToken);
+        } catch (TaskCanceledException) {
+          return;
+        }
+        _renderer.CaptureImage();
+      });
+    }
+  }
+}</code></pre>
+It processes the image through our view model, capturing another image after a specified delay. Keep in mind that the <code>CaptureImage</code>&nbsp;call has to be on the main thread for an image capture event to be received.
+<h3>ViewModel/View</h3>
+You'll notice we reference a <code>LabelReader</code>&nbsp;class in the code above, that handles the actual image processing. This is our view class, which we'll explain below.
+The <code>LabelReader</code>&nbsp;view is very simple. It's just an <code>ContentPage</code> view that will be rendered into by our custom renderer. As such I haven't included it here.
+The view model that we bind to it is a little more interesting. We will have two views/viewmodels. The outer "parent" view is called <code>LabelReaderPage</code>&nbsp;and the inner custom renderer view is the empty once mentioned above.
+The <code>LabelReader</code>&nbsp;view code-behind binds a take photo command, and exposes a public method to call it:
+<pre><code>public partial class LabelReader : ContentPage
+{
+  public LabelReader ()
+  {
+    InitializeComponent ();
+  }
+  public static readonly BindableProperty TakePhotoCommandProperty =
+    BindableProperty.Create(propertyName: nameof(TakePhotoCommand),
+      returnType: typeof(ICommand),
+      declaringType: typeof(LabelReaderPage));
+  public void ProcessPhoto(object image) {
+    TakePhotoCommand.Execute(image);
+  }
+  public void Cancel() {
+  }
+  /// &lt;summary&gt;
+  /// The command for processing photo data.
+  /// &lt;/summary&gt;
+  public ICommand TakePhotoCommand {
+    get =&gt; (ICommand)GetValue(TakePhotoCommandProperty);
+    set =&gt; SetValue(TakePhotoCommandProperty, value);
+  }
+}</code></pre>
+The label reader page view simple binds this property:
+<pre><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;views:LabelReader
+  xmlns="http://xamarin.com/schemas/2014/forms"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  xmlns:views="clr-namespace:xxx.Views;assembly=xxx"
+  x:Class="xxx.Views.LabelReaderPage"
+  TakePhotoCommand="{ Binding TakePhoto }"&gt;
+&lt;/views:LabelReader&gt;</code></pre>
+This is the viewmodel that we wire to it:
+<pre><code>public class LabelReaderPageViewModel&nbsp; {
+  private BufferBlock&lt;object&gt; ImageQueue;
+  private CancellationTokenSource CancellationTokenSource;
+  private CancellationToken CancellationToken;
+  private Task BackgroundOperation;
+  public LabelReaderPageViewModel(INavigationService navigationService) : base(navigationService) {
+    CancellationTokenSource = new CancellationTokenSource();
+    CancellationToken = CancellationTokenSource.Token;
+    ImageQueue = new BufferBlock&lt;object&gt;(new DataflowBlockOptions {
+      BoundedCapacity = 1
+    });
+    BackgroundOperation = Task.Run(() =&gt; ProcessImageAsync(CancellationToken));
+  }
+  private void StopBackgroundOperations() {
+    CancellationTokenSource.Cancel();
+  }
+  private async void ProcessImageAsync(CancellationToken cancellationToken) {
+    while (!cancellationToken.IsCancellationRequested) {
+      object image = await ImageQueue.ReceiveAsync(cancellationToken);
+      // do your image processing here
+    }
+  }
+  /// &lt;summary&gt;
+  /// A command that is executed when a photo is taken.
+  /// &lt;/summary&gt;
+  public ICommand TakePhoto =&gt; new Command(async (object image) =&gt; {
+    if (CancellationToken.IsCancellationRequested) { return; }
+    // receive any pending image(s), so that our background task will get the latest image
+    // when it completes processing on the previous image
+    IList&lt;object&gt; queuedData;
+    ImageQueue.TryReceiveAll(out queuedData);
+    queuedData = null;
+    // force GC collect our unused byte arrays
+    // so we don't overflow adding another
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
+    await ImageQueue.SendAsync(image, CancellationToken);
+  });
+}</code></pre>
+We use a <code>BufferBlock</code>&nbsp;with a max capacity of 1, so that if we receive more images than we can process, it won't take up too much memory. forcing garbage collection when we receive an image is not always necessary, but it helps ensure that we don't get memory overflow issues. We <code>TryReceiveAll</code>&nbsp;on the buffer block to clear it of any previous images we haven't finished processing, and then we send the new image for processing in our background task, where we await the new value.
+<h3>Custom Renderer (iOS)</h3>
+This code in iOS is much simpler. Not in the least because the "surface" for the image preview handles rotation almost natively in their API.
+<pre><code>public class CameraPageRenderer : PageRenderer, IAVCaptureVideoDataOutputSampleBufferDelegate {
+  /// &lt;summary&gt;
+  /// The session we have opened with the camera.
+  /// &lt;/summary&gt;
+  AVCaptureSession captureSession;
+  /// &lt;summary&gt;
+  /// The camera input in our session.
+  /// &lt;/summary&gt;
+  AVCaptureDeviceInput captureDeviceInput;
+  /// &lt;summary&gt;
+  /// The output class for frames from our camera session.
+  /// &lt;/summary&gt;
+  AVCaptureVideoDataOutput videoDataOutput;
+  /// &lt;summary&gt;
+  /// The layer containing the video preview for still image capture
+  /// &lt;/summary&gt;
+  AVCaptureVideoPreviewLayer videoPreviewLayer;
+  /// &lt;summary&gt;
+  /// The cancellation token source for canceling tasks run in the background
+  /// &lt;/summary&gt;
+  CancellationTokenSource cancellationTokenSource;
+  /// &lt;summary&gt;
+  /// The cancellation token for canceling tasks run in the background
+  /// &lt;/summary&gt;
+  CancellationToken cancellationToken;
+  public CameraPageRenderer() : base() {
+  }
+  public override UIInterfaceOrientationMask GetSupportedInterfaceOrientations() {
+    return UIInterfaceOrientationMask.Landscape;
+  }
+  protected override void OnElementChanged(VisualElementChangedEventArgs e) {
+    base.OnElementChanged(e);
+    SetupUserInterface();
+    SetupEventHandlers();
+  }
+  public override void WillAnimateRotation(UIInterfaceOrientation toInterfaceOrientation, double duration) {
+    base.WillAnimateRotation(toInterfaceOrientation, duration);
+    videoPreviewLayer.Connection.VideoOrientation = GetCaptureOrientation(toInterfaceOrientation);
+  }
+  public override async void ViewDidLoad() {
+    cancellationTokenSource = new CancellationTokenSource();
+    cancellationToken = cancellationTokenSource.Token;
+    base.ViewDidLoad();
+    await AuthorizeCamera();
+    SetupLiveCameraStream();
+  }
+  /// &lt;summary&gt;
+  /// Gets authorization to access the camera.
+  /// &lt;/summary&gt;
+  /// &lt;returns&gt;&lt;/returns&gt;
+  async Task AuthorizeCamera() {
+    var authStatus = AVCaptureDevice.GetAuthorizationStatus(AVMediaType.Video);
+    if (authStatus != AVAuthorizationStatus.Authorized) {
+      await AVCaptureDevice.RequestAccessForMediaTypeAsync(AVMediaType.Video);
+    }
+  }
+  /// &lt;summary&gt;
+  /// Gets a useable camera for the orientation we require.
+  /// &lt;/summary&gt;
+  /// &lt;param name="orientation"&gt;&lt;/param&gt;
+  /// &lt;returns&gt;&lt;/returns&gt;
+  public AVCaptureDevice GetCameraForOrientation(AVCaptureDevicePosition orientation) {
+    var devices = AVCaptureDevice.DevicesWithMediaType(AVMediaType.Video);
+    foreach (var device in devices) {
+      if (device.Position == orientation) {
+        return device;
+      }
+    }
+    return null;
+  }
+  /// &lt;summary&gt;
+  /// Gets the orientation to capture the live preview image at
+  /// based on the screen orientation. Always the nearest
+  /// landscape mode.
+  /// &lt;/summary&gt;
+  /// &lt;returns&gt;&lt;/returns&gt;
+  private AVCaptureVideoOrientation GetCaptureOrientation(UIInterfaceOrientation orientation) {
+  switch (orientation) {
+    case UIInterfaceOrientation.LandscapeLeft:
+      return AVCaptureVideoOrientation.LandscapeLeft;
+    case UIInterfaceOrientation.LandscapeRight:
+      return AVCaptureVideoOrientation.LandscapeRight;
+    case UIInterfaceOrientation.Portrait:
+      return AVCaptureVideoOrientation.LandscapeLeft;
+    case UIInterfaceOrientation.PortraitUpsideDown:
+      return AVCaptureVideoOrientation.LandscapeRight;
+    default:
+      return AVCaptureVideoOrientation.LandscapeLeft;
+    }
+  }
+  /// &lt;summary&gt;
+  /// Starts a session with the camera, and creates the classes
+  /// needed to view a video preview, and capture a still image.
+  /// &lt;/summary&gt;
+  public void SetupLiveCameraStream() {
+    captureSession = new AVCaptureSession() {
+      SessionPreset = new NSString(AVCaptureSession.PresetHigh)
+    };
+    videoPreviewLayer = new AVCaptureVideoPreviewLayer(captureSession) {
+      Frame = View.Frame,
+      Orientation = GetCaptureOrientation(UIApplication.SharedApplication.StatusBarOrientation)
+    };
+    View.Layer.AddSublayer(videoPreviewLayer);
+    AVCaptureDevice captureDevice =
+      GetCameraForOrientation(AVCaptureDevicePosition.Back) ??
+      GetCameraForOrientation(AVCaptureDevicePosition.Front) ??
+      GetCameraForOrientation(AVCaptureDevicePosition.Unspecified);
+    captureDeviceInput = AVCaptureDeviceInput.FromDevice(captureDevice);
+    captureSession.AddInput(captureDeviceInput);
+    videoDataOutput = new AVCaptureVideoDataOutput();
+    videoDataOutput.SetSampleBufferDelegateQueue(this, new CoreFoundation.DispatchQueue("frameQueue"));
+    captureSession.AddOutput(videoDataOutput);
+    captureSession.StartRunning();
+    // set last processed time to now so the handler for video frames will wait an appropriate length of time
+    // before processing images.
+    lastImageProcessedTime = DateTime.Now;
+  }
+  /// &lt;summary&gt;
+  /// Create the UI elements for the user interface.
+  /// &lt;/summary&gt;
+  void SetupUserInterface() {
+    // ui label with instructions is centered at the top.
+    // to get it to appear at the top, the height must be adjusted to fit.
+    // to accomplish this, I call SizeToFit, then set the frame to have
+    // the same width as the screen, while preserving the height.
+    UILabel takePhotoLabel = new UILabel();
+    takePhotoLabel.Text = LabelReaderConstants.PhotoCaptureInstructions;
+    int labelMargin = LabelReaderConstants.PhotoCaptureInstructionsMargin;
+    takePhotoLabel.Frame = new CoreGraphics.CGRect(labelMargin, labelMargin, View.Frame.Width - labelMargin, View.Frame.Height - labelMargin);
+    takePhotoLabel.BackgroundColor = ColorExtensions.ToUIColor(Color.Transparent);
+    takePhotoLabel.TextColor = ColorExtensions.ToUIColor(Color.White);
+    takePhotoLabel.TextAlignment = UITextAlignment.Center;
+    takePhotoLabel.Lines = 0;
+    takePhotoLabel.SizeToFit();
+    takePhotoLabel.Frame = new CoreGraphics.CGRect(labelMargin, labelMargin, View.Frame.Width - labelMargin, takePhotoLabel.Frame.Height);
+    View.AddSubview(takePhotoLabel);
+  }
+  /// &lt;summary&gt;
+  /// Sets up event handlers for UI elements.
+  /// &lt;/summary&gt;
+  void SetupEventHandlers() {
+  }
+  private bool imageProcessingStarted = false;
+  private DateTime lastImageProcessedTime = DateTime.Now;
+  [Export("captureOutput:didOutputSampleBuffer:fromConnection:")]
+  public void DidOutputSampleBuffer(AVCaptureOutput captureOutput, CMSampleBuffer sampleBuffer, AVCaptureConnection connection) {
+    if (!imageProcessingStarted) {
+      if ((DateTime.Now - lastImageProcessedTime).TotalMilliseconds &lt; LabelReaderConstants.ImageCaptureBeginDelayMilliseconds) { return; }
+      imageProcessingStarted = true;
+    }
+    if((DateTime.Now - lastImageProcessedTime).TotalMilliseconds &lt; LabelReaderConstants.ImageCaptureDelayMilliseconds) { return; }
+    lastImageProcessedTime = DateTime.Now;
+    (Element as LabelReader).ProcessPhoto(sampleBuffer);
+  }
+  public override void ViewDidUnload() {
+    base.ViewDidUnload();
+    cancellationTokenSource.TryCancelAndDispose();
+    captureDeviceInput.TryDispose();
+    videoDataOutput.TryDispose();
+    captureSession.StopRunning();
+    captureSession.TryDispose();
+  }
+}</code></pre>
+Much of this code works very similarly to the Android code for image preview and capture. With iOS, though, a few things are simpler.
+For one, we can set the orientation easily as part of their API for video capture. And due to the high quality of the video capture, we can simply process the frames that the video preview is outputting. We also do not have to delay an image capture task, but rather can simply check the last processed photo time when we receive a new frame.
+If you're wondering why we didn't use higher quality still image captures for iOS, that's because iOS produces a shutter sound that can be really annoying when you're taking pictures at a constant rate, and there's no easy way to turn this sound off.
+<h3>Conclusions</h3>
+Image capture with image preview cross-platform is relatively easy to accomplish with Xamarin Forms. It wasn't simple, although the Android code is simpler if you use the older camera API.
+There seems to be a need in Xamarin Forms for an image preview control that is cross-platform, and a cross-platform mechanism for capturing high-quality images from this preview.
+The <a href="https://github.com/KthProg/XamarinImageCaptureSample/tree/master/XamarinImageCaptureSample/XamarinImageCaptureSample.Android">full code</a> is posted on <a href="https://github.com/KthProg">my GitHub</a> for anyone to view and use, and is significantly simpler than the examples that it was created from. Hopefully this serves as a useful resource for those looking for this functionality in their Xamarin apps.
+If there's anything you'd like explained in more detail, please <a href="mailto:kthprog@gmail.com">send me an email</a> to let me know (I've disabled comments due to spam).
+    </div>
+  </div>
+  <iframe src="/sections/footer.htm"></iframe>
+</body>
+
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html style="cursor: crosshair;">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Boolean Parameters Considered Harmful - Tech Blog</title>
+  <meta content="Microsoft FrontPage 4.0" name="GENERATOR">
+  <link rel="stylesheet" type="text/css" href="../assets/styles.css">
+  <link rel="stylesheet" type="text/css" href="../assets/cafes.css">
+  <link rel="stylesheet" type="text/css" href="../assets/blog.css">
+  <script src="../assets/scripts.js"></script>
+</head>
+
+<body style="cursor: crosshair" text="#f7f7ff" vlink="#0000bf" alink="#80c101" link="#00ff00" bgcolor="#000000"
+  background="../assets/bg22[1].jpg">
+  <table cellspacing="0" cellpadding="0" width="100%" border="0" hspace="0" vspace="0">
+    <tbody>
+      <tr>
+        <td width="12" height="12"></td>
+        <td width="100%">
+          <p align="center">
+            <font color="#0000bf"><a href="../index.htm"><img src="../assets/SClogo.gif" align="bottom" border="0" height="153"></a></font>
+          </p>
+        </td>
+        <td width="12" height="12"></td>
+      </tr>
+      <tr>
+        <td valign="top" align="left" width="12"><img style="cursor: crosshair" height="1" hspace="0" src="../assets/1x1.gif" width="12" align="bottom" border="0"></td>
+        <td>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle">&nbsp; <font face="Arial,Helvetica,sans-serif" color="#ffcc99" size="1">&nbsp;&nbsp;&nbsp; </font></td>
+                </tr>
+                <tr>
+                  <td height="11">
+                    <font face="Arial,Helvetica,sans-serif" color="#00ff66" size="1">| <a style="cursor: crosshair" title="House" href="../house.htm" target="_top"><u>House</u></a> | <a style="cursor: crosshair" title="Parking" href="../parking.htm" target="_top"><u>Parking</u></a> | <a style="cursor: crosshair" title="Events" href="../events.htm" target="_top"><u>Events</u></a> | <a style="cursor: crosshair" title="Detroit Events" href="../detroit-events.htm" target="_top"><u>Detroit Events</u></a> | <a style="cursor: crosshair" title="Cafes" href="../cafes.htm" target="_top"><u>Cafes</u></a> | <a style="cursor: crosshair" title="Blogs &amp; Updates" href="../links.htm" target="_top"><u>Blogs &amp; Updates</u></a> | <a style="cursor: crosshair" title="Wtf" href="../about.htm" target="_top"><u>About</u></a> | <a style="cursor: crosshair" title="Blog" href="../blog.htm" target="_top"><u>Blog</u></a> | |</font>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img height="2" src="../assets/05f58020.gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img style="cursor: crosshair" height="2" src="../assets/05f58020(1).gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td height="11"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div align="center">
+    <div class="post-article">
+      <p class="back-link"><a href="../blog.htm">&larr; Back to Blog</a></p>
+      <p class="post-title">Boolean Parameters Considered Harmful</p>
+      <p class="post-date">Jul 9, 2021</p>
+<p>Time for a nice short article.</p>
+
+<p>As a development team, we were having a bit of a side discussion during our ensemble meeting (mobbing session essentially). There was a method call that took a boolean, and we didn't have the slightest clue what it did just looking at the code.</p>
+
+<p>This led us to ask a question: are booleans ever helpful in method parameters? For me, the answer is no. An enum can do everything a boolean does, but in a <em>much</em> clearer manner. Take a look at these two pieces of code and decide for yourself:</p>
+
+<pre><code>function myFunc(shouldNotDoSomething = false){
+  if(!shouldNotDoSomething){
+    console.log('Doing something!');
+  }
+}
+
+// what is true, what is false???
+// hard to expand to more cases
+myFunc(true);
+myFunc(false);</code></pre>
+
+<pre><code>function myFunc(doOrDoNot = DO){
+  if(doOrDoNot === DO){
+    console.log('Doing something!');
+  }
+}
+
+// much clearer, easily expands to new
+// cases
+myFunc(DO_NOT);
+myFunc(DO);</code></pre>
+
+<p>Another option could be to use object destructuring parameters, or named parameters in other languages, but I really think you can't beat the flexibility of an enum, combined with object destructuring/name parameters (depending on the language). An ideal piece of code might look like this:</p>
+
+<pre><code>// so easy to extend and refactor
+function myFunc({
+  doOrDoNot = DO,
+}){
+  if(doOrDoNot === DO){
+    console.log('Doing something!');
+  }
+}
+
+// couldn't be more obvious what's
+// happening now
+myFunc({ doOrDoNot: DO_NOT });
+myFunc({ doOrDoNot: DO });</code></pre>
+
+<p>That's all! These small programming tweaks can really add up if you're always aiming for best practices, and to code for everyone else's ease of use and understanding.</p>
+    </div>
+  </div>
+  <iframe src="/sections/footer.htm"></iframe>
+</body>
+
+</html>

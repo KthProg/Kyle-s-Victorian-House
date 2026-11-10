@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html style="cursor: crosshair;">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The CSS Box Model - Tech Blog</title>
+  <meta content="Microsoft FrontPage 4.0" name="GENERATOR">
+  <link rel="stylesheet" type="text/css" href="../assets/styles.css">
+  <link rel="stylesheet" type="text/css" href="../assets/cafes.css">
+  <link rel="stylesheet" type="text/css" href="../assets/blog.css">
+  <script src="../assets/scripts.js"></script>
+</head>
+
+<body style="cursor: crosshair" text="#f7f7ff" vlink="#0000bf" alink="#80c101" link="#00ff00" bgcolor="#000000"
+  background="../assets/bg22[1].jpg">
+  <table cellspacing="0" cellpadding="0" width="100%" border="0" hspace="0" vspace="0">
+    <tbody>
+      <tr>
+        <td width="12" height="12"></td>
+        <td width="100%">
+          <p align="center">
+            <font color="#0000bf"><a href="../index.htm"><img src="../assets/SClogo.gif" align="bottom" border="0" height="153"></a></font>
+          </p>
+        </td>
+        <td width="12" height="12"></td>
+      </tr>
+      <tr>
+        <td valign="top" align="left" width="12"><img style="cursor: crosshair" height="1" hspace="0" src="../assets/1x1.gif" width="12" align="bottom" border="0"></td>
+        <td>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle">&nbsp; <font face="Arial,Helvetica,sans-serif" color="#ffcc99" size="1">&nbsp;&nbsp;&nbsp; </font></td>
+                </tr>
+                <tr>
+                  <td height="11">
+                    <font face="Arial,Helvetica,sans-serif" color="#00ff66" size="1">| <a style="cursor: crosshair" title="House" href="../house.htm" target="_top"><u>House</u></a> | <a style="cursor: crosshair" title="Parking" href="../parking.htm" target="_top"><u>Parking</u></a> | <a style="cursor: crosshair" title="Events" href="../events.htm" target="_top"><u>Events</u></a> | <a style="cursor: crosshair" title="Detroit Events" href="../detroit-events.htm" target="_top"><u>Detroit Events</u></a> | <a style="cursor: crosshair" title="Cafes" href="../cafes.htm" target="_top"><u>Cafes</u></a> | <a style="cursor: crosshair" title="Blogs &amp; Updates" href="../links.htm" target="_top"><u>Blogs &amp; Updates</u></a> | <a style="cursor: crosshair" title="Wtf" href="../about.htm" target="_top"><u>About</u></a> | <a style="cursor: crosshair" title="Blog" href="../blog.htm" target="_top"><u>Blog</u></a> | |</font>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img height="2" src="../assets/05f58020.gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img style="cursor: crosshair" height="2" src="../assets/05f58020(1).gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td height="11"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div align="center">
+    <div class="post-article">
+      <p class="back-link"><a href="../blog.htm">&larr; Back to Blog</a></p>
+      <p class="post-title">The CSS Box Model</p>
+      <p class="post-date">Jan 17, 2017</p>
+<h3>Intro</h3>
+
+<hr>
+
+One of the most poorly understood components of a web application is the styling. Many of the developers I've worked with haven't taken the time to learn&nbsp;the principles that CSS relies on — especially how the rules cascade — and how padding, margins, borders, and content create the layouts of a page.
+The latter is called the "box model" and is what we'll be looking at today.
+The box model is composed of four parts:
+<ul>
+ 	<li>Content</li>
+ 	<li>Padding</li>
+ 	<li>Borders and</li>
+ 	<li>Margins</li>
+</ul>
+<h3>Content</h3>
+
+<hr>
+
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/box-model-content-1.png"><img src="http://examiningeverything.com/wp-content/uploads/box-model-content-1.png" alt="CSS Box Model Content" width="954" height="384"></a><small>CSS Box Model Content</small></div>
+
+In a block element, the content area is determined by:
+<ul>
+ 	<li>The height and width, if set, otherwise</li>
+ 	<li>The height and width of its content</li>
+</ul>
+In an inline element (almost anything directly containing text) the content area is determined by:
+<ul>
+ 	<li>The line-height and width, if set, otherwise</li>
+ 	<li>The height of a line (font size), and the width of its container</li>
+</ul>
+It's important to note that inline element's borders, padding, and margins will apply to each line that the content appears on.
+<h3>Padding</h3>
+
+<hr>
+
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/box-model-padding.png"><img src="http://examiningeverything.com/wp-content/uploads/box-model-padding.png" alt="CSS Box Model Padding" width="954" height="384"></a><small>CSS Box Model Padding</small></div>
+
+Padding is the space between the border and the edge of the element's content area. You can think of it as a margin between the border and content.
+Background colors only apply to the content area, and padding space.
+<h3>Borders</h3>
+
+<hr>
+
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/box-model-border.png"><img src="http://examiningeverything.com/wp-content/uploads/box-model-border.png" alt="CSS Box Model Border" width="954" height="384"></a><small>CSS Box Model Border</small></div>
+
+Borders begin immediately outside of the content area, which is essentially all you need to know. This is true for both inline and block elements.
+Background colors apply to all space inside the border.
+<h3>Margins</h3>
+
+<hr>
+
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/box-model-margin.png"><img src="http://examiningeverything.com/wp-content/uploads/box-model-margin.png" alt="CSS Box Model Margin" width="954" height="384"></a><small>CSS Box Model Margin</small></div>
+
+Margins begin just outside of the border, and determine the space between it and the elements around it.
+<h3>Box-sizing</h3>
+
+<hr>
+
+The CSS box-sizing property can cause exceptions to the above rules. The two valid values for box-sizing are:
+<ul>
+ 	<li>content-box</li>
+ 	<li>border-box</li>
+</ul>
+<h4>Content-box</h4>
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/box-model-1.png"><img src="http://examiningeverything.com/wp-content/uploads/box-model-1.png" alt="Our original CSS Box" width="954" height="384"></a><small>Our original CSS Box</small></div>
+
+Content box is the default value for this property in CSS, and means that elements will behave as shown above. In other words, the content determines height and width, or if set explicitly, the height and width control the size of the content area.
+This means that an element which has a width of 50px with 5px of padding, a 1px border, and 3px of margins would take up 50px + (5px + 1px + 3px) * 2 (two sides) = 68px of width.
+<h4>Border-box</h4>
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/box-model-2.png"><img src="http://examiningeverything.com/wp-content/uploads/box-model-2.png" alt="The same box but using border-box" width="956" height="311"></a><small>The same box but using border-box</small></div>
+
+In this case, the width and height, when set, control the size of the element including content, padding and borders. Only the margins are not included.
+This means that an element which has a width of 50px with 5px of margins would take up 50px + 5px * 2 (two sides) = 60px of width,&nbsp;<em>regardless</em> of padding or borders.
+<h4>Padding-box</h4>
+This value is not supported is most browsers, but if/when supported the height and width would include both the content and padding.
+<h3>Margin collapsing</h3>
+
+<hr>
+
+Another important exception to these rules is margin collapsing. Margin collapsing means that instead of two element's margin's being "added" together, they simply lay on top of one another, and the larger margin is displayed.
+Margin collapsing occurs in 3 basic cases:
+<ul>
+ 	<li>Adjacent sibling elements</li>
+ 	<li>Parent whose first or last child's margins collide with parent margin</li>
+ 	<li>Empty elements</li>
+</ul>
+<h4>Adjacent sibling elements</h4>
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/adj-sib-margin-collapse.png"><img src="http://examiningeverything.com/wp-content/uploads/adj-sib-margin-collapse.png" alt="Adjacent Siblings Margin Collapse" width="953" height="120"></a><small>Note how the center margin is 15px instead of 30px</small></div>
+
+If two tags are located one after another then their margins will collapse.
+<h4>Parent with first/last child margin collision</h4>
+This occurs when the top margin of a parent element "touches" the top margin of its first child, or when the bottom margin of a parent element "touches" the bottom margin of its last child.
+In either of these cases, the child element&nbsp;margin is "pushed" outside of the parent element, and the larger of the two is what will be displayed.
+<h4>Empty blocks</h4>
+When a box's top and bottom margins touch (because there is no content), then the margins will collapse. Meaning it will essentially only have one margin, which is the largest of the two.
+<h3>Summary</h3>
+
+<hr>
+
+The CSS box model is very simple — once you understand and apply it — knowing these fundamental rules of CSS layouts, as well as the gotchas that can occur, should help you make quick work of many common layout problems.
+    </div>
+  </div>
+  <iframe src="/sections/footer.htm"></iframe>
+</body>
+
+</html>

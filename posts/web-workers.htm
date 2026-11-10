@@ -1,0 +1,248 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html style="cursor: crosshair;">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Using JavaScript Web Workers for Asynchronous Tasks - Tech Blog</title>
+  <meta content="Microsoft FrontPage 4.0" name="GENERATOR">
+  <link rel="stylesheet" type="text/css" href="../assets/styles.css">
+  <link rel="stylesheet" type="text/css" href="../assets/cafes.css">
+  <link rel="stylesheet" type="text/css" href="../assets/blog.css">
+  <script src="../assets/scripts.js"></script>
+</head>
+
+<body style="cursor: crosshair" text="#f7f7ff" vlink="#0000bf" alink="#80c101" link="#00ff00" bgcolor="#000000"
+  background="../assets/bg22[1].jpg">
+  <table cellspacing="0" cellpadding="0" width="100%" border="0" hspace="0" vspace="0">
+    <tbody>
+      <tr>
+        <td width="12" height="12"></td>
+        <td width="100%">
+          <p align="center">
+            <font color="#0000bf"><a href="../index.htm"><img src="../assets/SClogo.gif" align="bottom" border="0" height="153"></a></font>
+          </p>
+        </td>
+        <td width="12" height="12"></td>
+      </tr>
+      <tr>
+        <td valign="top" align="left" width="12"><img style="cursor: crosshair" height="1" hspace="0" src="../assets/1x1.gif" width="12" align="bottom" border="0"></td>
+        <td>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle">&nbsp; <font face="Arial,Helvetica,sans-serif" color="#ffcc99" size="1">&nbsp;&nbsp;&nbsp; </font></td>
+                </tr>
+                <tr>
+                  <td height="11">
+                    <font face="Arial,Helvetica,sans-serif" color="#00ff66" size="1">| <a style="cursor: crosshair" title="House" href="../house.htm" target="_top"><u>House</u></a> | <a style="cursor: crosshair" title="Parking" href="../parking.htm" target="_top"><u>Parking</u></a> | <a style="cursor: crosshair" title="Events" href="../events.htm" target="_top"><u>Events</u></a> | <a style="cursor: crosshair" title="Detroit Events" href="../detroit-events.htm" target="_top"><u>Detroit Events</u></a> | <a style="cursor: crosshair" title="Cafes" href="../cafes.htm" target="_top"><u>Cafes</u></a> | <a style="cursor: crosshair" title="Blogs &amp; Updates" href="../links.htm" target="_top"><u>Blogs &amp; Updates</u></a> | <a style="cursor: crosshair" title="Wtf" href="../about.htm" target="_top"><u>About</u></a> | <a style="cursor: crosshair" title="Blog" href="../blog.htm" target="_top"><u>Blog</u></a> | |</font>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img height="2" src="../assets/05f58020.gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img style="cursor: crosshair" height="2" src="../assets/05f58020(1).gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td height="11"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div align="center">
+    <div class="post-article">
+      <p class="back-link"><a href="../blog.htm">&larr; Back to Blog</a></p>
+      <p class="post-title">Using JavaScript Web Workers for Asynchronous Tasks</p>
+      <p class="post-date">Jul 19, 2017</p>
+<h3>Intro</h3>
+JavaScript's concurrency model until recently has been non-existent. Asynchronous calls like AJAX or event handlers are actually scheduled along a single execution thread, with each event waiting its turn. This is very useful in the browser, where you want to be absolutely sure that you are not manipulating the DOM in a haphazard fashion. UI developers don't want to have to worry about locking resources, but would rather focus on the end result in the UI.
+But what about when you <em>do</em> want to worry about concurrency? What about when you would really like to offload some long running process to your front-end, without having to interrupt the UI thread? What do you do when moving your code to the server and using some signaling method is inconvenient or completely impossible?
+Lucky for us modern developers, JavaScript does now provide a solution. WebWorkers are <em>genuinely</em> concurrent thread objects that do not interrupt the UI thread. These objects create OS threads in the background, and can therefore take advantage of multiple cores and other hardware optimizations. This is what we'll be looking at today.
+<h3>Creating a Script</h3>
+WebWorkers take a single JavaScript file and execute it in their own thread and execution context (i.e., <code>self</code> is <em>not</em> the window). This means that the first step is to write the script that you would like to run concurrently.
+For this example, we will use a computationally intensive but simple task: number factorization. We'll use a very basic algorithm since factoring numbers is not the point of this article.
+Here is that script. You can call this <code>worker.js</code>.
+<pre><code>var percentage = 0;
+var factors = [];
+// respond to messages from the main thread
+self.onmessage = function(e) {
+    percentage = 0;
+    factors = [];
+    findAllFactors(e.data);
+};
+// loop through all possible prime factors (we'll find non-prime factors as well)
+function findAllFactors(num){
+    // largest possible prime factor in square root of number
+    var max = Math.sqrt(num);
+    for(var i = 2; i &lt; max; ++i){
+        // our percent complete will be the number of numbers we've
+        // checked out fo the total possible numbers
+        percentage = Math.ceil((i / max) * 100);
+        // this number divides num, so add it to the list
+        if(num % i === 0){
+            factors.push(i);
+        }
+        // this number either divides num, or we're done checking, so
+        // signal the main thread with our status
+        if(num % i === 0 || percentage === 100){
+            // post back the list of factors, and our completion percentage
+            self.postMessage({
+                percentage: percentage,
+                factors: factors
+            });
+        }
+    }
+}
+</code></pre>
+This script simply takes a number (passed to the worker) and factors it by iterating through all the possible numbers. When it finds a number, it messages the main thread to let it know.
+<code>self</code> in a web worker script refers to the worker itself. So by setting <code>onmessage</code>, we are telling the web worker to respond to any messages by factoring the given number.
+<code>postMessage</code> does just the opposite. This method sends a message back to the main thread, allowing it to respond to any changes. We do this because the worker itself cannot access the DOM, and if it could, the DOM updates would not occur until after execution had completed, like any other script.
+<h3>Creating the Main Thread Script</h3>
+We'll need a script to create the web worker, and respond to updates. This script will look like the script below.
+<pre><code>(function(window, undefined){
+    window.loadingIndicator = {
+        // 720,720 is a highly composite number (lots of factors, perfect for this example)
+        number: 720720 * 720720 * 720720,
+        ui: { // our important DOM nodes
+            loadingBar: null,
+            button: null,
+            factors: null
+        },
+        // our web worker instance
+        worker: null,
+        // call this from the page
+        init: function(){
+            this.bindEvents();
+        },
+        // bind document events
+        bindEvents: function(){
+            var self = this;
+            document.addEventListener('DOMContentLoaded', function(){
+                self.setUiElements();
+                // bind click event for our button
+                self.ui.button.addEventListener('click', self.buttonClicked.bind(self));
+                // create the worker
+                self.worker = self.createLoadingThread();
+            });
+        },
+        // when we click the button, this adds a span, helping
+        // demonstrate the 'non-blocking'ness of the worker
+        buttonClicked: function(){
+            var span = document.createElement('span');
+            var br = document.createElement('br');
+            span.innerHTML = 'You clicked me!';
+            this.ui.button.parentNode.append(br);
+            this.ui.button.parentNode.append(span);
+        },
+        // set our ui map to nodes
+        setUiElements: function(){
+            this.ui.loadingBar = document.getElementsByClassName('loading-bar-value')[0];
+            this.ui.button = document.getElementsByTagName('button')[0];
+            this.ui.factors = document.getElementById('factors');
+        },
+        // create our worker
+        createLoadingThread: function(){
+            var worker = new Worker('worker.js');
+            worker.onmessage = this.respondToUpdate.bind(this);
+            // send worker number to factor
+            worker.postMessage(this.number);
+            return worker;
+        },
+        //respond to messages from the worker (new factor found)
+        respondToUpdate: function(event){
+            // set width to percentage of completion
+            this.ui.loadingBar.style.width = String(event.data.percentage) + '%';
+            // loading completed
+            if(event.data.percentage &gt;= 100){
+                this.completed(event);
+            }
+        },
+        // clean up when worker is done
+        completed: function(event){
+            this.worker.terminate();
+            // remove other elements except indicator
+            this.ui.button.parentNode.removeChild(this.ui.button);
+            // removing shifts entire list up, so we can just keep
+            // removing the first element
+            var spans = document.getElementsByTagName('span');
+            while(spans.length){
+                spans[0].parentNode.removeChild(spans[0]);
+            }
+            var brs = document.getElementsByTagName('br');
+            while(brs.length){
+                brs[0].parentNode.removeChild(brs[0]);
+            }
+            this.ui.factors.innerHTML = 'Factors of ' +
+                this.number + ': ' +
+                event.data.factors.join(', ');
+        }
+    };
+})(window, undefined);</code></pre>
+Let's look at the <code>createLoadingThread</code> method, since this is the most important thing going on here.
+On the first line, it creates a web worker, passing it the name of the script we created earlier. Next, it sets the <code>onmessage</code> handler of the web worker to our <code>respondToUpdate</code> method. Don't confuse this with <code>onmessage</code> in our <code>worker.js</code> file. This <code>onmessage</code> responds only to messages posted from the worker we create to the main thread. This <code>respondToUpdate</code> method in turn updates our loading indicator. When the task has completed, we call the <code>completed</code> method, which calls <code>terminate</code> on the worker.
+Lastly, we post a single message to the worker that we created, passing it the number that we want to factor. This will trigger the <code>onmessage</code> handler of the worker, causing it to factor the number and begin posting messages back to our main thread.
+<h3>Creating a Page</h3>
+Of course, none of this can execute without a page to run in. The HTML for this example is below.
+<pre><code>&lt;!DOCTYPE HTML&gt;
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;style&gt;
+            .loading-bar-container {
+                width: 200px;
+                height: 25px;
+                border: 1px solid lightgrey;
+            }
+            .loading-bar-value {
+                background-color: green;
+                height: 100%;
+                width: 0%;
+            }
+            button {
+                margin-top: 5px;
+            }
+        &lt;/style&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;div class="loading-bar-container"&gt;
+            &lt;div class="loading-bar-value" /&gt;
+        &lt;/div&gt;
+        &lt;div id="factors"&gt;&lt;/div&gt;
+        &lt;button&gt;Click me, I still work!&lt;/button&gt;
+        &lt;script src="main.js"&gt;&lt;/script&gt;
+        &lt;script&gt;
+            window.loadingIndicator.init();
+        &lt;/script&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h3>Putting it All Together</h3>
+Great! So now we've got our worker script, and our script for the main thread. We also have a page to run all of this.
+However, that's not the end of it. In order to run this example without any error message, you will have to set this up under a running web server. Without the web server hosting the page, Chrome and other browsers may throw exceptions because there is no "host".
+Assuming the above is set up, here's what the page will look like. To test the page, click on the button we created. You'll notice that the UI is not being interrupted by our factorization. A message is appended for every button click, while the factorization algorithm runs in the background. The loading indicator continues to update as the factorization continues to run.
+
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/loading.png"><img src="http://examiningeverything.com/wp-content/uploads/loading.png" alt="WebWorker Loading Bar" width="293" height="196"></a><small>WebWorker Loading</small></div>
+
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/finished.png"><img src="http://examiningeverything.com/wp-content/uploads/finished.png" alt="WebWorker Finished" width="271" height="191"></a><small>WebWorker Finished</small></div>
+<h3>Conclusion</h3>
+WebWorkers provide a very simple but very useful API. They provide a clear benefit by allowing you to run computationally intensive tasks without blocking the UI. This leads to a much better user experience, and to much more interactive pages.
+The factorization process above can be any long-running calculation that is slowing down your application. Rather than forcing the user to wait, simply put your long-running task into its own script, create a web worker, and respond to its messages until it is completed.
+This is a much better user experience than having the UI blocked by some long calculation, so it's well worth the relatively small effort required to make the change.
+If long-running computations are significantly impacting your user's UI experience, WebWorkers are a great solution, and relatively easy to implement.
+    </div>
+  </div>
+  <iframe src="/sections/footer.htm"></iframe>
+</body>
+
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html style="cursor: crosshair;">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Horror That Is React Native - Tech Blog</title>
+  <meta content="Microsoft FrontPage 4.0" name="GENERATOR">
+  <link rel="stylesheet" type="text/css" href="../assets/styles.css">
+  <link rel="stylesheet" type="text/css" href="../assets/cafes.css">
+  <link rel="stylesheet" type="text/css" href="../assets/blog.css">
+  <script src="../assets/scripts.js"></script>
+</head>
+
+<body style="cursor: crosshair" text="#f7f7ff" vlink="#0000bf" alink="#80c101" link="#00ff00" bgcolor="#000000"
+  background="../assets/bg22[1].jpg">
+  <table cellspacing="0" cellpadding="0" width="100%" border="0" hspace="0" vspace="0">
+    <tbody>
+      <tr>
+        <td width="12" height="12"></td>
+        <td width="100%">
+          <p align="center">
+            <font color="#0000bf"><a href="../index.htm"><img src="../assets/SClogo.gif" align="bottom" border="0" height="153"></a></font>
+          </p>
+        </td>
+        <td width="12" height="12"></td>
+      </tr>
+      <tr>
+        <td valign="top" align="left" width="12"><img style="cursor: crosshair" height="1" hspace="0" src="../assets/1x1.gif" width="12" align="bottom" border="0"></td>
+        <td>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle">&nbsp; <font face="Arial,Helvetica,sans-serif" color="#ffcc99" size="1">&nbsp;&nbsp;&nbsp; </font></td>
+                </tr>
+                <tr>
+                  <td height="11">
+                    <font face="Arial,Helvetica,sans-serif" color="#00ff66" size="1">| <a style="cursor: crosshair" title="House" href="../house.htm" target="_top"><u>House</u></a> | <a style="cursor: crosshair" title="Parking" href="../parking.htm" target="_top"><u>Parking</u></a> | <a style="cursor: crosshair" title="Events" href="../events.htm" target="_top"><u>Events</u></a> | <a style="cursor: crosshair" title="Detroit Events" href="../detroit-events.htm" target="_top"><u>Detroit Events</u></a> | <a style="cursor: crosshair" title="Cafes" href="../cafes.htm" target="_top"><u>Cafes</u></a> | <a style="cursor: crosshair" title="Blogs &amp; Updates" href="../links.htm" target="_top"><u>Blogs &amp; Updates</u></a> | <a style="cursor: crosshair" title="Wtf" href="../about.htm" target="_top"><u>About</u></a> | <a style="cursor: crosshair" title="Blog" href="../blog.htm" target="_top"><u>Blog</u></a> | |</font>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img height="2" src="../assets/05f58020.gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img style="cursor: crosshair" height="2" src="../assets/05f58020(1).gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td height="11"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div align="center">
+    <div class="post-article">
+      <p class="back-link"><a href="../blog.htm">&larr; Back to Blog</a></p>
+      <p class="post-title">The Horror That Is React Native</p>
+      <p class="post-date">Aug 29, 2018</p>
+<h3>Introduction</h3>
+This is my story and experience with React Native development. It is meant to be a bit humorous and maybe a bit of a laying out of grievances as I come to the end of a very long and difficult development cycle for a complex and painful app. As such, there may be some things that are a bit exaggerated, and I'm only speaking for myself. So here goes :)
+A close friend of mine came to me with an app idea recently which I finished over the course of the Summer. The idea was decent but not groundbreaking, and I didn't want to spend too much time on it. With that in mind, I knew I would need something that could bring my web experience into the mobile arena and speed up development. The first such development kit that I was referred to was React Native.
+I gave it a quick once over and it appeared to be exactly what I was looking for. It has a quick start that only would take a few lines of code. It had libraries for routing, and if you used Expo, you would get all kinds of goodies like an image picker, natively supported across multiple platforms. Little did I know the deep dark secrets lurking unseen.
+<h3>Humble Beginnings</h3>
+To get started, you're presented with a couple of options. You can either do the quick start, or you can "build projects with native code". You'd be forgiven for completely missing the second option as I did. And anyways, I chose this library because I don't want to work with native code, right???
+Running their commands as specified seems to do the trick no problem, and off you are.
+<h3>Getting Real</h3>
+Well this is all great, but as you start to put together an app, you notice something glaringly absent... any kind of navigation. Obviously, you don't want to manage this yourself, and you start on your quest for tools.
+This is when you start to learn that in React Native, there is an Expo version, a React version, and an open source version of nearly every solution you can encounter.
+I personally used the&nbsp;<code>react-navigation</code>&nbsp;package, and I found their example with the stack navigator to work for my purposes. You will find later on that there is no easy way to reset the stack (for instance, when you don't want someone to navigate back to the login screen). To fix this issue, you'll have to use <code>StackActions</code>&nbsp;and <code>NavigationActions</code> to set the index back to zero. You're welcome.
+<h3>ES6 Confusion</h3>
+If you're not used to writing in ES6 JavaScript, then there'a quite a bit to learn. You will definitely learn to appreciate it in the end, but at the beginning it feels like quite the hassle.
+For instance, <code>let</code>&nbsp;and <code>const</code>. These are not words you'd be used to seeing in JavaScript, but they are common in React Native. Another example is classes, although these are generally easy to grasp and understand by looking at them.
+Classes have to be imported differently depending on whether they are declared <code>default</code>&nbsp;or not, and importing something more than once will give you a meaningless error when you build the code that can take forever to track down.
+Promises use an <code>await</code>/<code>async</code> syntax similar to C#.
+You can assign the property name and value of an object simultaneously by using a local variable name like this:
+<pre><code>let a = 5;
+let obj = { a }; // obj has property 'a' with value 5
+</code></pre>
+Oh and when you import JS libraries that are <em>not</em> ES6... well the rules are weird, you'll want to keep Google handy.
+<h3>Release Horror</h3>
+This is more of a small aside, as you're unlikely to release directly from Expo anyways, but your Expo release builds will be queued up on a remote server, and will generally finish in about 15 minutes if you go the Expo quick start route. This alone made me reconsider the decision to use Expo, as the only useful thing the library gave me was an image picker.
+This also requires creating an account with Expo, and if you release from these builds and later detach, you will have to contact Google support to get your publishing certificates updated. Your Expo code is always public, although you can keep it from being searchable. Would be nice if React told us all this up front wouldn't it?
+<h3>Detaching Horror</h3>
+So now you have many months of working hard to put together your app, but it debugs from your PC and all you have to do is make sure your PC and phone are on the same WiFi to test your app. This all seems wonderful and great, and you're deeply satisfied with your good decision.
+However, much like relationships, React Native has hidden her true nature from you until it's much too late, and it is on the tail end of this journey that you discover her dark secrets, for it is now time to detach.
+Detaching is the process of removing your app from the Expo environment dependency, and generating native apps that run your JS code.
+Detaching is quite a process, and I had it go wrong a few times before I was able to detach successfully. If you used Expo as in the quick start, then you will need to detach using the Expo documentation and not the React Native documentation, as I figured out rather quickly.
+Detaching is where I faced the brunt of my issues.
+First, the Google Play libraries did not match the versions given in the imported libraries, which caused all kinds of hard to track down bugs. Next, the builds only worked if I had Expo running, but the build couldn't complete with Expo started since they accessed the same files, which made starting the JS debugger a chore. Lastly, the generated code for Android was wildly out of date and nearly every library had to be upgraded, gradle had to be upgraded, the build tools had to be upgraded, and the syntax for the gradle files had to be changed.
+Everything seemed to be going much better at this point, and I figured my hard work had paid off and I could go back to an easy development cycle. Well, I got some more surprises when I tried to use the payments library I had integrated (<code>react-native-payments</code>).
+As it turns out, the main activity code wasn't handling <code>Intent</code>s correctly, and it had to be updated to contain an override that looks like this:
+<pre><code>
+@Override
+public void onActivityResult(int requestCode, int resultCode, Intent data) {
+  ((ReactInstanceManager)(Object)mReactInstanceManager.get()).onActivityResult(this, requestCode, resultCode, data );
+}
+</code></pre>
+So much for not writing any native code.
+Now the payment module was working as expected, and I turned my eyes to the next task: push notifications. I had been originally handling this through Expo, but as it turns out that's a complete waste of time, as you really need to use Firebase to get notifications in a production application once you detach.
+The library I had moved into its place was <code>react-native-notifications</code>. It seemed to do everything I wanted, even though the documentation was a bit incomplete and confusing, much like <code>react-native-payments</code>.
+At first, everything was good, I appeared to be getting the notification tokens and I happily pushed out the changes. This is when it all went wrong.
+I noticed that my users weren't receiving a single notification, even though Firebase was receiving them successfully (Oh, and Google's terrible push notification documentation is another story).
+I couldn't for the life of me figure out why this was, not in the least because including the notifications library caused my builds to stop working with Expo, so I could no longer debug the application. I had to test full releases only. React Native was also not pushing any of my <code>console.log</code>&nbsp;messages into the android logs, so I could get no hints that way.
+This is when I stumbled upon an error in the logs. The notifications library seemed to be expecting my application to be of type <code>ReactApplication</code>&nbsp;but it was instead of type <code>ExpoApplication</code>. Once again, Expo was breaking React through undocumented breaking issues that were incompatible with React. Of course this is React's fault as well: they shouldn't recommend using a library that isn't compatible with the rest of their documentation.
+I managed to find an issue on GitHub from someone else who had gone through similar horrors, and happily copied their code. But, it still didn't work!
+As I investigated the issue I found myself deep in the bowels of the React Native code, implementing obscure interfaces and overriding methods whose implementations did not fit well into the Expo model of doing things.
+The final code looked something like this, and also required implementing a <code>getReactInstanceManager()</code>&nbsp;method in the main activity:
+<pre><code>package host.exp.exponent;
+import android.app.Activity;
+import android.util.Log;
+import com.facebook.react.ReactPackage;
+import java.util.Arrays;
+import java.util.List;
+import expolib_v1.okhttp3.OkHttpClient;
+import host.exp.expoview.Exponent;
+// Needed for `react-native link`
+// import com.facebook.react.ReactApplication;
+import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
+import com.reactnativepayments.ReactNativePaymentsPackage;
+import com.facebook.react.ReactApplication;
+import com.facebook.react.ReactNativeHost;
+import com.facebook.react.ReactInstanceManager;
+public class MainApplication extends ExpoApplication implements ReactApplication {
+  @Override
+  public boolean isDebug() {
+    return BuildConfig.DEBUG;
+  }
+  @Override
+  public ReactNativeHost getReactNativeHost() {
+    return mReactNativeHost;
+  }
+  // Needed for `react-native link`
+  public List&lt;ReactPackage&gt; getPackages() {
+    return Arrays.&lt;ReactPackage&gt;asList(
+        // Add your own packages here!
+        // TODO: add native modules!
+        // Needed for `react-native link`
+        // new MainReactPackage(),
+        new ReactNativePushNotificationPackage(),
+        new ReactNativePaymentsPackage()
+    );
+  }
+  private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
+    @Override
+    public ReactInstanceManager getReactInstanceManager(){
+      Log.d("ReactNativeHost", "Fetching manager from Exponent (override)");
+      Activity activity = Exponent.getInstance().getCurrentActivity();
+      if(activity instanceof MainActivity){
+        return ((MainActivity)activity).getReactInstanceManager();
+      }
+      Log.d("ReactNativeHost", "Activity was not main activity");
+      return null;
+    }
+    @Override
+    public boolean getUseDeveloperSupport() {
+      return BuildConfig.DEBUG;
+    }
+    @Override
+    protected List&lt;ReactPackage&gt; getPackages() {
+      return Arrays.&lt;ReactPackage&gt;asList(
+        new ReactNativePushNotificationPackage(),
+        new ReactNativePaymentsPackage()
+      );
+    }
+  };
+  @Override
+  public String gcmSenderId() {
+    return getString(R.string.gcm_defaultSenderId);
+  }
+  @Override
+  public boolean shouldUseInternetKernel() {
+    return BuildVariantConstants.USE_INTERNET_KERNEL;
+  }
+  public static OkHttpClient.Builder okHttpClientBuilder(OkHttpClient.Builder builder) {
+    // Customize/override OkHttp client here
+    return builder;
+  }
+}</code></pre>
+Alas, everything is working, and on I can go, slowly building each change as a new release and pushing the full apk because React Native's recommended SDK (Expo) is completely incompatible with their own implementations.
+<h3>Tooling Issues</h3>
+The above issues are not the only issues I encountered on this long and arduous journey. There were missing files (<code>gradlew.bat</code>, which I had to generate myself), and I had to run an Expo publish (which pushes my code to their servers) before assembling each release. In the end, nearly everything that made using it worthwhile fell to pieces, and I will be spending considerable time removing Expo and bringing my app back to pure React Native, to avoid all the pitfalls of mixing the two SDKs.
+<h3>Positives</h3>
+Not everything about React Native and Expo was bad. In fact overall it saved me a lot of time and effort, and will continue to do so. What was truly bad about it was the way React Native encouraged developers to use an SDK (Expo) that is clearly not well-tested with their tools.
+<h4>Common Language</h4>
+Having a common language is a huge positive (ES6 JavaScript) and makes life so much easier. I would hate to be writing all of my business logic for both iOS and Android. The extra efforts will be more than worth it when I release on iOS as well.
+<h4>COmmon Design</h4>
+That same language is used for the design/styling as well in a very clever CSS-like syntax that allows for similar, though simpler behavior. Designs are done using flex layouts, which generally provide all the behavior you would usually need. Fixed positioning doesn't always work how you'd expect, but that's a minor gripe.
+<h4>Common Assets</h4>
+There's no need to have resources for Android and have assets for iOS. You can simply manage your assets from the same directory as your JS code. This is a huge time saver.
+<h4>Quick Debugging</h4>
+Up until I had detached, and ran into compatibility issues with Expo and React, debugging was extremely fast and easy. It took seconds to reload a new version and I could check the code as it ran from my browser. This was a huge convenience.
+<h4>it Works</h4>
+It's alive. It does what it's supposed to. The library itself has no glaring bugs, it's more the integration with open source code that causes the issues.
+<h4>Packages</h4>
+Almost everything you could ever need is supported in some package if it is not a part of the React Native SDK. This makes development very easy, although the documentation for these libraries is not always that good.
+<h3>Conclusion</h3>
+Don't use Expo. Seriously. I can't imagine why anyone would. You are way better off writing packages for React Native and building things locally than you are shifting your builds onto some server somewhere for the privilege of having an image picker built in.
+Yes this means you will have to manage an Android project, but you're going to have to do that eventually anyways. I can see no real drawback and plenty of benefits to simply skipping the quick start, skipping Expo, and using React Native only.
+If you have any comments on this article let me know. I'd be happy to go into more detail on some of the issues I faced, and track down more links for bugs and documentation that I came across.
+I'll also be revising this as time goes on to include more images of some of the issues I faced for illustration.
+<h3>Bugs</h3>
+These are just the bugs I could find, there were at least four or five others that came up in the course of development.
+<a href="https://github.com/expo/expo/issues/2073">https://github.com/expo/expo/issues/2073</a>
+<a href="https://github.com/naoufal/react-native-payments/issues/111">https://github.com/naoufal/react-native-payments/issues/111</a>
+<a href="https://github.com/zo0r/react-native-push-notification/issues/846">https://github.com/zo0r/react-native-push-notification/issues/846</a>
+<a href="https://github.com/zo0r/react-native-push-notification/issues/845">https://github.com/zo0r/react-native-push-notification/issues/845</a>
+<h3>Links</h3>
+These are some of the links I used in the course of developing the app, which may show you some of the confusion I came across during development.
+<a href="https://facebook.github.io/react-native/docs/getting-started.html">https://facebook.github.io/react-native/docs/getting-started.html</a>
+<a href="https://facebook.github.io/react-native/docs/navigation">https://facebook.github.io/react-native/docs/navigation</a>
+    </div>
+  </div>
+  <iframe src="/sections/footer.htm"></iframe>
+</body>
+
+</html>

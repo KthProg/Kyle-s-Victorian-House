@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html style="cursor: crosshair;">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Disabling State Auto-Update in OpenHAB 2 - Tech Blog</title>
+  <meta content="Microsoft FrontPage 4.0" name="GENERATOR">
+  <link rel="stylesheet" type="text/css" href="../assets/styles.css">
+  <link rel="stylesheet" type="text/css" href="../assets/cafes.css">
+  <link rel="stylesheet" type="text/css" href="../assets/blog.css">
+  <script src="../assets/scripts.js"></script>
+</head>
+
+<body style="cursor: crosshair" text="#f7f7ff" vlink="#0000bf" alink="#80c101" link="#00ff00" bgcolor="#000000"
+  background="../assets/bg22[1].jpg">
+  <table cellspacing="0" cellpadding="0" width="100%" border="0" hspace="0" vspace="0">
+    <tbody>
+      <tr>
+        <td width="12" height="12"></td>
+        <td width="100%">
+          <p align="center">
+            <font color="#0000bf"><a href="../index.htm"><img src="../assets/SClogo.gif" align="bottom" border="0" height="153"></a></font>
+          </p>
+        </td>
+        <td width="12" height="12"></td>
+      </tr>
+      <tr>
+        <td valign="top" align="left" width="12"><img style="cursor: crosshair" height="1" hspace="0" src="../assets/1x1.gif" width="12" align="bottom" border="0"></td>
+        <td>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle">&nbsp; <font face="Arial,Helvetica,sans-serif" color="#ffcc99" size="1">&nbsp;&nbsp;&nbsp; </font></td>
+                </tr>
+                <tr>
+                  <td height="11">
+                    <font face="Arial,Helvetica,sans-serif" color="#00ff66" size="1">| <a style="cursor: crosshair" title="House" href="../house.htm" target="_top"><u>House</u></a> | <a style="cursor: crosshair" title="Parking" href="../parking.htm" target="_top"><u>Parking</u></a> | <a style="cursor: crosshair" title="Events" href="../events.htm" target="_top"><u>Events</u></a> | <a style="cursor: crosshair" title="Detroit Events" href="../detroit-events.htm" target="_top"><u>Detroit Events</u></a> | <a style="cursor: crosshair" title="Cafes" href="../cafes.htm" target="_top"><u>Cafes</u></a> | <a style="cursor: crosshair" title="Blogs &amp; Updates" href="../links.htm" target="_top"><u>Blogs &amp; Updates</u></a> | <a style="cursor: crosshair" title="Wtf" href="../about.htm" target="_top"><u>About</u></a> | <a style="cursor: crosshair" title="Blog" href="../blog.htm" target="_top"><u>Blog</u></a> | |</font>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img height="2" src="../assets/05f58020.gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img style="cursor: crosshair" height="2" src="../assets/05f58020(1).gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td height="11"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div align="center">
+    <div class="post-article">
+      <p class="back-link"><a href="../blog.htm">&larr; Back to Blog</a></p>
+      <p class="post-title">Disabling State Auto-Update in OpenHAB 2</p>
+      <p class="post-date">Sep 22, 2017</p>
+<h3>Intro</h3>
+One major complication of using openHAB in an enterprise environment is that the event handling does not always play nice with custom bindings. There are times when you would like to control the state updates through your binding, instead of the state being immediately updated after a command is posted.
+In openHAB 1 you can statically define your items with definition files, that can include an <code>autoupdate="false"</code> configuration, <a href="https://github.com/openhab/openhab-docs/blob/gh-pages/configuration/items.md#exception-autoupdate">which will prevent this behavior</a>. However, what if your items are not defined statically this way? Well, as it turns out you'll have to go through a bit more work.
+<h3>The Binding</h3>
+The <code>autoupdate</code> feature is actually a binding that is added by default to the openHAB 2 installation. This blog should save you probably near a couple weeks trying to figure this out, as stack traces are basically useless through OSGi applications.
+The actual binding responsible for this behavior it turns out, is the <a href="https://github.com/eclipse/smarthome/blob/ce45260ff4c45d42aa337b9ec3363ecb6e4d8f01/bundles/core/org.eclipse.smarthome.core.autoupdate/src/main/java/org/eclipse/smarthome/core/autoupdate/internal/AutoUpdateBinding.java#L102">Eclipse SmartHome autoupdate binding</a>. If you follow the link, you can see that it's not clear how to disable this behavior. As it turns out, there are two ways of doing this.
+<h3>Disabling Auto-Update</h3>
+<h4>Method 1: Remove the binding</h4>
+The easiest way to disable auto-update is to remove the binding entirely from openHAB. You can do this by opening your openHAB 2 installation (<code>ssh openhab@localhost</code> on Linux, <code>openHAB/start.bat</code> on Windows), then typing <code>bundle:uninstall "Eclipse SmartHome AutoUpdate Binding"</code>.
+This comes with a side-effect though, any binding which depends on this auto-update feature will stop working or have erratic behavior. This solution works best when you're creating a custom installation that only uses your binding.
+<h4>Method 2: Create a Config Provider</h4>
+Another option is to implement your own <code>AutoUpdateBindingConfigProvider</code> and register it with OSGi. Looking at the <a href="https://github.com/eclipse/smarthome/blob/3ae5d7b1b284f2bde6199bfe8dad950fd38cae39/bundles/model/org.eclipse.smarthome.model.item/src/org/eclipse/smarthome/model/item/AutoUpdateGenericBindingConfigProvider.java#L87">default provider</a>, you can see that it gets the auto-update property from the config files (which are no longer used in openHAB 2). You could create your own provider which simply returns <code>false</code> for all of your things/channels/items, and thus only prevents auto-update on those items. You just have to make sure to register it as a provider with OSGi, which you can do by copying <a href="https://github.com/eclipse/smarthome/blob/3ae5d7b1b284f2bde6199bfe8dad950fd38cae39/bundles/model/org.eclipse.smarthome.model.item/OSGI-INF/genericautoupdatebindingprovider.xml">this file</a> into the OSGI-INF directory in your binding, and replacing <code>AutoUpdateGenericBindingConfigProvider</code> with your own <code>BindingConfigProvider</code> implementation; you'll also have to remove the <code>BindingConfigReader</code> entry. Since the default implementation simply returns <code>null</code>, the setting returned by your new provider will be used to determine when auto-update is applied.
+<h3>Conclusion</h3>
+Documentation on auto-update for openHAB 2 is sparse, and the transition of openHAB to Eclipse SmartHome is still largely in progress, so some implementation details have escaped most developers. Auto-update is normally good practice, but can interfere with direct updates being pushed from the binding, such as when a sent command is rejected by the underlying device. Replacing the config provider with your own can significantly increase the control you have over your enterprise openHAB 2 application.
+    </div>
+  </div>
+  <iframe src="/sections/footer.htm"></iframe>
+</body>
+
+</html>

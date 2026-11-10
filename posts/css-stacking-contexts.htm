@@ -1,0 +1,127 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html style="cursor: crosshair;">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CSS Stacking Contexts - Tech Blog</title>
+  <meta content="Microsoft FrontPage 4.0" name="GENERATOR">
+  <link rel="stylesheet" type="text/css" href="../assets/styles.css">
+  <link rel="stylesheet" type="text/css" href="../assets/cafes.css">
+  <link rel="stylesheet" type="text/css" href="../assets/blog.css">
+  <script src="../assets/scripts.js"></script>
+</head>
+
+<body style="cursor: crosshair" text="#f7f7ff" vlink="#0000bf" alink="#80c101" link="#00ff00" bgcolor="#000000"
+  background="../assets/bg22[1].jpg">
+  <table cellspacing="0" cellpadding="0" width="100%" border="0" hspace="0" vspace="0">
+    <tbody>
+      <tr>
+        <td width="12" height="12"></td>
+        <td width="100%">
+          <p align="center">
+            <font color="#0000bf"><a href="../index.htm"><img src="../assets/SClogo.gif" align="bottom" border="0" height="153"></a></font>
+          </p>
+        </td>
+        <td width="12" height="12"></td>
+      </tr>
+      <tr>
+        <td valign="top" align="left" width="12"><img style="cursor: crosshair" height="1" hspace="0" src="../assets/1x1.gif" width="12" align="bottom" border="0"></td>
+        <td>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle">&nbsp; <font face="Arial,Helvetica,sans-serif" color="#ffcc99" size="1">&nbsp;&nbsp;&nbsp; </font></td>
+                </tr>
+                <tr>
+                  <td height="11">
+                    <font face="Arial,Helvetica,sans-serif" color="#00ff66" size="1">| <a style="cursor: crosshair" title="House" href="../house.htm" target="_top"><u>House</u></a> | <a style="cursor: crosshair" title="Parking" href="../parking.htm" target="_top"><u>Parking</u></a> | <a style="cursor: crosshair" title="Events" href="../events.htm" target="_top"><u>Events</u></a> | <a style="cursor: crosshair" title="Detroit Events" href="../detroit-events.htm" target="_top"><u>Detroit Events</u></a> | <a style="cursor: crosshair" title="Cafes" href="../cafes.htm" target="_top"><u>Cafes</u></a> | <a style="cursor: crosshair" title="Blogs &amp; Updates" href="../links.htm" target="_top"><u>Blogs &amp; Updates</u></a> | <a style="cursor: crosshair" title="Wtf" href="../about.htm" target="_top"><u>About</u></a> | <a style="cursor: crosshair" title="Blog" href="../blog.htm" target="_top"><u>Blog</u></a> | |</font>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img height="2" src="../assets/05f58020.gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img style="cursor: crosshair" height="2" src="../assets/05f58020(1).gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td height="11"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div align="center">
+    <div class="post-article">
+      <p class="back-link"><a href="../blog.htm">&larr; Back to Blog</a></p>
+      <p class="post-title">CSS Stacking Contexts</p>
+      <p class="post-date">Feb 10, 2017</p>
+<h3>Intro</h3>
+Today we'll be learning about a lesser-known feature of CSS: Stacking contexts.
+You may have been working on a project before and been surprised when you set the z-index for an element and it refused to move forward, remaining behind some other stubborn element.
+There's a reason for this behavior, and that reason is stacking contexts.
+<h3>Stacking Context</h3>
+A stacking context is essentially a group of elements whose z-index value determines their position within that group. If two elements do not share a stacking context, then they will ignore each other's z-index values.
+In this case, the stacking order is based on their relative order in the DOM (See image under "Creating a Stack").
+<h3>Creating a Stack</h3>
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/stacking-context.png"><img src="http://examiningeverything.com/wp-content/uploads/stacking-context.png" alt="All of the common stacking context types." width="658" height="465"></a><small>All of the common stacking context types. Order is relative, fixed, absolute, opacity, transform.</small></div>
+
+A stacking context is created in the following cases:
+<ul>
+ 	<li>The root stacking context (html element)</li>
+ 	<li>Absolute or relative position with&nbsp;a set z-index</li>
+ 	<li>Fixed position</li>
+ 	<li>Opacity less than 1</li>
+ 	<li>A set transform</li>
+ 	<li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Positioning/Understanding_z_index/The_stacking_context">A few other less common instances</a></li>
+</ul>
+I'll be covering only the common instances that developers will normally encounter.
+<h3>The Root Stacking Context</h3>
+This case is pretty clear. Initially, all elements are part of a single stacking context under the DOM, meaning that their relative position on the z axis is determined entirely by their z-index property. If no z-index is set, their order is determine by the order in which they appear in the DOM (See image under "Creating a Stack").
+<h3>Absolute or Relative Position With a Set Z-Index</h3>
+This case is the second-most common. This is almost always intentional, but occasionally, developers may try to position an element in another stacking context over some absolutely positioned element and find that it's not possible.
+<h3>Fixed Position</h3>
+Another common case, but one that can be confusing. Most but not all browsers have this behavior now. Fixed position elements create their own stacking context, which without a z-index normally places it behind the document root. This can create a case of disappearing elements.
+<h3>Opacity less than 1</h3>
+This is a rare case, but one that everyone should be aware of. If you're going to set opacity, then you have to know the consequence will be&nbsp;a new stacking context. If all you want is a translucent element, it will be more predictable if you simple set an rgba background with an alpha less than 1.
+The reason for this is clear: If it did not create a new stacking context, what elements would show through the transparent element?
+<h3>A Set Transform</h3>
+This is a case which is more and more common lately, as CSS transforms become the norm. This often throws people off, as we assume when we scale an element it should retain its position in the flow of the document. The new stacking context can cause a transformed element to hide menus and other elements which would normally appear in front.
+<h3>How Stacking Contexts Interact</h3>
+Of course, the most important thing is how to apply this knowledge to create layouts and fix problems in the real world. For this reason, I've supplied some examples of how stacking contexts interact with each other. Most importantly, how do their children determine their z-positioning relative to other stacking context's children?
+Well, using the example from "Creating a Stack", here's what happens:
+<h3>Z-Index Set</h3>
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/stacking-context-z-index-on-relative-children.png"><img src="http://examiningeverything.com/wp-content/uploads/stacking-context-z-index-on-relative-children.png" alt="Z-Index on Relative Element's Children" width="619" height="461"></a><small>Z-Index on Relative Element's Children</small></div>
+
+If we set the z-index of the child elements, the result is the same as our original elements.
+<h3>Z-Index Positive, Position Relative</h3>
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/stacking-context-z-index-on-relative-children-chidlren-are-relative.png"><img src="http://examiningeverything.com/wp-content/uploads/stacking-context-z-index-on-relative-children-chidlren-are-relative.png" alt="Z-Index on Relative Element's Children - Children Are Relatively Positioned" width="636" height="483"></a><small>Z-Index on Relative Element's Children - Children Are Relatively Positioned</small></div>
+
+If we set the z-index of the child elements to a positive value, but additionally set the children's positions to relative (creating a new stacking context for each child), then they will position completely independently of their parent, moving out in front of the other elements.
+<h3>Z-Index Negative, Position Relative</h3>
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/stacking-context-negative-z-index-on-relative-children-chidlren-are-relative.png"><img src="http://examiningeverything.com/wp-content/uploads/stacking-context-negative-z-index-on-relative-children-chidlren-are-relative.png" alt="Negative Z-Index on Relative Element's Children - Children Are Relatively Positioned" width="615" height="463"></a><small>Negative Z-Index on Relative Element's Children - Children Are Relatively Positioned</small></div>
+
+If we set the z-index of the child elements to a negative value, but additionally set the position to relative (creating a new stacking context for each child), then they will position completely independently of their parent, moving behind the other elements.
+<h3>Z-Index Greater Than Other Stacking Context's Children</h3>
+<div class="post-caption"><a href="http://examiningeverything.com/wp-content/uploads/relative-and-fixed-with-set-z-index-children-with-set-z-index.png"><img src="http://examiningeverything.com/wp-content/uploads/relative-and-fixed-with-set-z-index-children-with-set-z-index.png" alt="Relative and Fixed Element with a Set Z-Index, Children With Set Z-Index Values" width="622" height="489"></a><small>Relative and Fixed Element with a Set Z-Index, Children With Set Z-Index Values</small></div>
+
+In this case, we have given both the relative element, and the fixed element a z-index. The z-indices of their children do not interact, so even though the relative children are positioned ahead of the fixed children, they do not appear that way. The children are each in separate stacking contexts, though their parents share the same stacking context.
+<h3>Conclusion</h3>
+Stacking contexts are groups of elements whose z-index values position them along the y axis relative to each other. If an element is the root of a stacking context, its children will ignore the z-index values of the children of other stacking contexts, even if they are larger than its own.
+Stacking contexts are very important when creating layouts in CSS. A lack of understanding of stacking contexts can lead to difficulty implementing relatively simple UIs, and in fixing bugs which arise commonly in today's UIs. Stacking contexts are very commonly created when showing things like menus, popups, windows, etc. These types of UI controls are very common in web applications today, and therefore so is knowledge of stacking contexts and how they interact.
+    </div>
+  </div>
+  <iframe src="/sections/footer.htm"></iframe>
+</body>
+
+</html>

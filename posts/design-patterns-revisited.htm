@@ -1,0 +1,625 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html style="cursor: crosshair;">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Design Patterns in JavaScript — Revisited - Tech Blog</title>
+  <meta content="Microsoft FrontPage 4.0" name="GENERATOR">
+  <link rel="stylesheet" type="text/css" href="../assets/styles.css">
+  <link rel="stylesheet" type="text/css" href="../assets/cafes.css">
+  <link rel="stylesheet" type="text/css" href="../assets/blog.css">
+  <script src="../assets/scripts.js"></script>
+</head>
+
+<body style="cursor: crosshair" text="#f7f7ff" vlink="#0000bf" alink="#80c101" link="#00ff00" bgcolor="#000000"
+  background="../assets/bg22[1].jpg">
+  <table cellspacing="0" cellpadding="0" width="100%" border="0" hspace="0" vspace="0">
+    <tbody>
+      <tr>
+        <td width="12" height="12"></td>
+        <td width="100%">
+          <p align="center">
+            <font color="#0000bf"><a href="../index.htm"><img src="../assets/SClogo.gif" align="bottom" border="0" height="153"></a></font>
+          </p>
+        </td>
+        <td width="12" height="12"></td>
+      </tr>
+      <tr>
+        <td valign="top" align="left" width="12"><img style="cursor: crosshair" height="1" hspace="0" src="../assets/1x1.gif" width="12" align="bottom" border="0"></td>
+        <td>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle">&nbsp; <font face="Arial,Helvetica,sans-serif" color="#ffcc99" size="1">&nbsp;&nbsp;&nbsp; </font></td>
+                </tr>
+                <tr>
+                  <td height="11">
+                    <font face="Arial,Helvetica,sans-serif" color="#00ff66" size="1">| <a style="cursor: crosshair" title="House" href="../house.htm" target="_top"><u>House</u></a> | <a style="cursor: crosshair" title="Parking" href="../parking.htm" target="_top"><u>Parking</u></a> | <a style="cursor: crosshair" title="Events" href="../events.htm" target="_top"><u>Events</u></a> | <a style="cursor: crosshair" title="Detroit Events" href="../detroit-events.htm" target="_top"><u>Detroit Events</u></a> | <a style="cursor: crosshair" title="Cafes" href="../cafes.htm" target="_top"><u>Cafes</u></a> | <a style="cursor: crosshair" title="Blogs &amp; Updates" href="../links.htm" target="_top"><u>Blogs &amp; Updates</u></a> | <a style="cursor: crosshair" title="Wtf" href="../about.htm" target="_top"><u>About</u></a> | <a style="cursor: crosshair" title="Blog" href="../blog.htm" target="_top"><u>Blog</u></a> | |</font>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img height="2" src="../assets/05f58020.gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img style="cursor: crosshair" height="2" src="../assets/05f58020(1).gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td height="11"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div align="center">
+    <div class="post-article">
+      <p class="back-link"><a href="../blog.htm">&larr; Back to Blog</a></p>
+      <p class="post-title">Design Patterns in JavaScript — Revisited</p>
+      <p class="post-date">Apr 27, 2017</p>
+<h3>Intro</h3>
+My original post on this subject did not dive deep into true "design patterns" but rather on basic inheritance in JavaScript. Since inheritance can be done in multiple ways in JavaScript, how you choose to inherit is itself a design pattern.
+This particular article will look into implementing common OOP design patterns in JavaScript, without violating the principles of those designs. Many online examples of design patterns in JavaScript violate these principles. For instance, many versions of the Singleton pattern are not inheritable, which defeats the purpose of the Singleton. And oftentimes, you can also create instances of them. This article assumes you already know these patterns and why they are used, and simply want to see their implementation in JavaScript.
+JavaScript is an interesting language. It is itself based on a design pattern: <a href="https://sourcemaking.com/design_patterns/prototype">prototypes</a>. Prototypes are speed-conserving but memory-using instances of objects that define initial values for much of the object definition. This is exactly analogous to setting prototype properties on a new object in JavaScript.
+Now this naturally leads to some limitations, which can become readily apparent in the implementations below. If you'd like to contribute to a library that tries to escape some of these limitations, you can contribute to <a href="https://github.com/KthProg/ClassJS">ClassJS</a> on GitHub. (Disclaimer: It's my project).
+I suggest you run all of these examples online as you read through.
+Anyways, let's get down to business. Here are the 10 common design patterns we will go over:
+<ol>
+ 	<li>Singleton</li>
+ 	<li>Abstract Factory</li>
+ 	<li>Object Pool</li>
+ 	<li>Adapter</li>
+ 	<li>Bridge</li>
+ 	<li>Decorator</li>
+ 	<li>Chain of responsibility</li>
+ 	<li>Memento</li>
+ 	<li>Observer</li>
+ 	<li>Visitor</li>
+</ol>
+<h3>Singleton</h3>
+Now, it's easy enough to get something in JavaScript that&nbsp;<em>looks</em>&nbsp;like a Singleton. But I'll show you how to write something that actually&nbsp;<em>behaves</em> like one. I.e.:
+<ol>
+ 	<li>You cannot instantiate it</li>
+ 	<li>It holds one single read-only instance of itself</li>
+ 	<li>You can inherit from it</li>
+</ol>
+Nearly all implementations you'll find miss out on one of these points, especially 1 or&nbsp;3. To accomplish these in JavaScript, you'll need to hide the instance in a closure, and throw an exception when the constructor is called from external code. Here's how that works:
+<pre><code>var Singleton = (function(){
+	var current = {};
+	function Singleton(){
+   		if(this.caller !== this.getCurrent &amp;&amp; this.caller !== this.copyPrototype){
+        	throw 'Cannot instantiate singleton';
+    	}
+	}
+  Singleton.prototype.sayHello = function(){
+    	console.log('hi');
+	};
+	Singleton.getCurrent = function(){
+  		// current is dictionary of type to instance
+      // new this() creates new instance of calling prototype
+    	current[this] = (current[this] || new this());
+      return current[this];
+	};
+	// we have to relax the rules here a bit to allow inheritance
+  // without modifying the original protoype
+	Singleton.prototype.copyPrototype = function(){
+    	return new this.constructor();
+  };
+	return Singleton;
+})();
+function SpecialSingleton(){
+  // ensure calling from accepted methods
+	Singleton.call(SpecialSingleton);
+}
+// copy prototype for inheritance
+SpecialSingleton.prototype = Singleton.getCurrent().copyPrototype();
+SpecialSingleton.getCurrent = Singleton.getCurrent;
+SpecialSingleton.prototype.sayHelloAgain = function(){
+	console.log('Hi again');
+};
+var singleton = SpecialSingleton.getCurrent();
+// base class method
+singleton.sayHello();
+// derived method
+singleton.sayHelloAgain();
+// throws error
+var special = new SpecialSingleton();</code>
+</pre>
+Notice that we also define a copyPrototype method. This is necessary so that the shared prototype does not get altered when we create other sub-classes. We could also serialize and deserialize the prototype with a special JSON reviver that handles functions, but that would make the explanation harder to follow.
+<h3>Abstract Factory</h3>
+A closely related pattern of course, is the Abstract Factory, which itself is generally a Singleton.&nbsp;One thing to note here is that we do not enforce the type that is returned. This is enforced at runtime as an error will be thrown if you call a method that does not exist.
+<pre><code>//  Singleton from above
+// create base prototype to make instances of
+function Thing(){
+}
+Thing.prototype.doSomething = function(){
+    console.log('doing something!');
+};
+// create derived prototype to make instances of
+function OtherThing(){
+}
+// inherit thing prototype
+OtherThing.prototype = new Thing();
+// override doSomething method
+OtherThing.prototype.doSomething = function(){
+    console.log('doing another thing!');
+};
+function ThingFactory(){
+    Singleton.call(ThingFactory);
+}
+ThingFactory.prototype = Singleton.getCurrent().copyPrototype();
+ThingFactory.getCurrent = Singleton.getCurrent;
+ThingFactory.prototype.makeThing = function(){
+    return new Thing();
+};
+function OtherThingFactory(){
+    Singleton.call(OtherThingFactory);
+}
+// need to use instance or prototype of original is overridden
+OtherThingFactory.prototype = ThingFactory.getCurrent().copyPrototype();
+OtherThingFactory.getCurrent = ThingFactory.getCurrent;
+OtherThingFactory.prototype.makeThing = function(){
+    return new OtherThing();
+};
+var things = [];
+for(var i = 0; i &lt; 10; ++i){
+    var thing = ThingFactory.getCurrent().makeThing();
+    things.push(thing);
+}
+for(var i = 0; i &lt; 10; ++i){
+    var thing = OtherThingFactory.getCurrent().makeThing();
+    things.push(thing);
+}
+// logs 'doing something!' ten times, then 'doing something else!' ten times
+things.forEach(function(thing){ thing.doSomething(); });</code></pre>
+<h3>Object Pool</h3>
+Our resource pool in this case is also a singleton. When a resource is requested and there are&nbsp;not enough to meet the demand, an exception is thrown back to the client, who is expected to then release a resource before calling again.
+<pre><code>// ... singleton from first example
+function Resource(){
+}
+Resource.prototype.doUsefulThing = function(){
+	console.log('I\'m useful!');
+};
+var ResourcePool = (function(){
+	var resources = [];
+  var maxResources = Infinity;
+  function ResourcePool(){
+    // ensure calling from accepted methods
+    Singleton.call(ResourcePool);
+  }
+  // copy prototype for inheritance
+  ResourcePool.prototype = Singleton.getCurrent().copyPrototype();
+  ResourcePool.getCurrent = Singleton.getCurrent;
+  ResourcePool.prototype.getResource = function(){
+    if(resources.length &gt;= maxResources){
+    	throw 'Not enough resource to meet demand, please wait for a resource to be released';
+    }
+    var resource = new Resource();
+    resources.push(resource);
+    return resource;
+  };
+  ResourcePool.prototype.releaseResource = function(resource){
+    resources = resources.filter(function(r){
+    	return r !== resource;
+    });
+  };
+  ResourcePool.prototype.setMaxResources = function(max){
+  	maxResources = max;
+  };
+  return ResourcePool;
+})();
+function NeedsResources(){
+}
+NeedsResources.prototype.doThingThatRequiresResources = function(){
+	var lastResource;
+  for(var i = 0; i &lt; 11; ++i){
+  	try{
+         lastResource = ResourcePool.getCurrent().getResource();
+         lastResource.doUsefulThing();
+    }catch(e){
+    	// requested too many resources, let's release one and try again
+      ResourcePool.getCurrent().releaseResource(lastResource);
+      ResourcePool.getCurrent().getResource().doUsefulThing();
+    }
+  }
+};
+ResourcePool.getCurrent().setMaxResources(10);
+var needsResources = new NeedsResources();
+needsResources.doThingThatRequiresResources();</code></pre>
+<h3>Adapter</h3>
+Our adapter is rather simple. We only interface with the modern door, but when we tell that door to open, it interfaces with the ancient door, without us having to understand the underlying implementation.
+<pre><code>function AncientDoorway(){
+}
+AncientDoorway.prototype.boltSet = true;
+AncientDoorway.prototype.counterWeightSet = true;
+AncientDoorway.prototype.pulleyInactive = true;
+AncientDoorway.prototype.removeBolt = function(){
+	this.boltSet = false;
+};
+AncientDoorway.prototype.releaseCounterWeight = function(){
+	this.counterWeightSet = false;
+};
+AncientDoorway.prototype.engagePulley = function(){
+	this.pulleyInactive = false;
+};
+function DoorwayAdapter(){
+	this.ancientDoorway = new AncientDoorway();
+}
+DoorwayAdapter.prototype.open = function(){
+	this.ancientDoorway.removeBolt();
+  this.ancientDoorway.releaseCounterWeight();
+  this.ancientDoorway.engagePulley();
+};
+DoorwayAdapter.prototype.isOpen = function(){
+	return !(
+  	this.ancientDoorway.boltSet ||
+    this.ancientDoorway.counterWeightSet ||
+    this.ancientDoorway.pulleyInactive
+  );
+};
+var someDoor = new DoorwayAdapter();
+// false
+console.log(someDoor.isOpen());
+// uses ancient interface to open door
+someDoor.open();
+// true
+console.log(someDoor.isOpen());</code></pre>
+<h3>Bridge</h3>
+Our bridge object delegates its responsibilities to some other class. The only thing it knows about this class is which methods it supports. At runtime, we can swap out various implementations, which have different behavior in the client class.
+<pre><code>function BaseThing(){
+}
+BaseThing.prototype.MethodA = function(){};
+BaseThing.prototype.MethodB = function(){};
+// if you wanted this to be truly private, you could check
+// calling method, or wrap whole prototype definition in closure
+BaseThing.prototype._helper = null;
+BaseThing.prototype.setHelper = function(helper){
+	if(!(helper instanceof BaseThingHelper)){
+  	throw 'Invalid helper type';
+  }
+	this._helper = helper;
+};
+function Thing(){
+}
+Thing.prototype = new BaseThing();
+// delegate responsibility to owned object
+Thing.prototype.methodA = function(){
+	this._helper.firstMethod();
+};
+Thing.prototype.methodB = function(){
+	this._helper.secondMethod();
+};
+function BaseThingHelper(){
+}
+BaseThingHelper.prototype.firstMethod = function(){};
+BaseThingHelper.prototype.secondMethod = function(){};
+function ThingHelper(){
+}
+ThingHelper.prototype = new BaseThingHelper();
+ThingHelper.prototype.firstMethod = function(){
+	console.log('calling first');
+};
+ThingHelper.prototype.secondMethod = function(){
+	console.log('calling second');
+};
+function OtherThingHelper(){
+}
+OtherThingHelper.prototype = new BaseThingHelper();
+OtherThingHelper.prototype.firstMethod = function(){
+	console.log('calling other first');
+};
+OtherThingHelper.prototype.secondMethod = function(){
+	console.log('calling other second');
+};
+var thing = new Thing();
+// set helper for bridge to use
+thing.setHelper(new ThingHelper());
+thing.methodA();
+thing.methodB();
+// swap implementation
+thing.setHelper(new OtherThingHelper());
+thing.methodA();
+thing.methodB();</code></pre>
+<h3>Decorator</h3>
+Our decorator prototypes delegate responsibility to their base classes, while adding additional functionality. They are instantiated by passing an object of the same type for them to wrap. When the calls propagate all the way to the base class, the original wrapped object's method is called.
+<pre><code>// LCD prototype
+function BaseThing(){}
+BaseThing.prototype.doSomething = function(){};
+// implementation (client code)
+function Thing(){}
+Thing.prototype = new BaseThing();
+Thing.prototype.doSomething = function(){};
+// wrapper classes for decoration
+function ThingWrapper(wrappedObject){
+	if(!wrappedObject){
+  	return;
+  }
+	if(!(wrappedObject instanceof BaseThing)){
+  	throw 'Invalid wrapped prototype type';
+  }
+	this._wrappedObject = wrappedObject;
+}
+ThingWrapper._wrappedObject = null;
+ThingWrapper.prototype = new Thing();
+ThingWrapper.prototype.doSomething = function(){
+	// delegate to wrapped class
+  this._wrappedObject.doSomething();
+};
+function CoolThing(wrappedObject){
+	ThingWrapper.call(this, wrappedObject);
+}
+CoolThing.prototype = new ThingWrapper();
+CoolThing.prototype.doSomething = function(){
+	ThingWrapper.prototype.doSomething.call(this);
+	console.log('doing something cool!');
+};
+function AwesomeThing(wrappedObject){
+	ThingWrapper.call(this, wrappedObject);
+}
+AwesomeThing.prototype = new ThingWrapper();
+AwesomeThing.prototype.doSomething = function(){
+	ThingWrapper.prototype.doSomething.call(this);
+  console.log('doing something awesome!');
+};
+var wrappedThing = new AwesomeThing(new CoolThing(new Thing()));
+wrappedThing.doSomething();
+var x = new ThingWrapper();</code></pre>
+<h3>Chain of Responsibility</h3>
+With chain of responsibility, various handlers are created for different events. Multiple handlers can handle multiple events, and multiple handlers may exist for the same event. All handlers keep a reference to the next handler, and handlers delegate their responsibility to the base class if they cannot handle an event. In this case, the base class will then ask the next handler to handle the event, and so on. The last handler handles all events, so we don't have to worry about an event going nowhere and the cycle continuing forever.
+<pre><code>var EventTypes = {
+	Magic: 0,
+	Cool: 1,
+  Awesome: 2
+};
+function Handler(){}
+Handler.prototype._nextHandler = null;
+Handler.prototype.addHandler = function(handler){
+	if(!(handler instanceof Handler)){
+  	throw 'Invalid handler type';
+  }
+  // if it already has a handler, append the handler to the next one
+  // this process will propagate to the end of the chain
+  if(!this._nextHandler){
+		this._nextHandler = handler;
+  }else{
+  	this._nextHandler.addHandler(handler);
+  }
+};
+// tell the next handler to try to handle the event
+Handler.prototype.execute = function(eventType){
+	this._nextHandler.execute(eventType);
+};
+function CoolHandler(){}
+CoolHandler.prototype = new Handler();
+CoolHandler.prototype.execute = function(eventType){
+	if(eventType !== EventTypes.Cool){
+  	console.log('delegated uncool event');
+        // tell the base handler to pass it to another handler
+  	return Handler.prototype.execute.call(this, eventType);
+  }
+  console.log('handled cool event');
+};
+function AwesomeHandler(){}
+AwesomeHandler.prototype = new Handler();
+AwesomeHandler.prototype.execute = function(eventType){
+	if(eventType !== EventTypes.Awesome){
+  	console.log('delegated non-awesome event');
+  	return Handler.prototype.execute.call(this, eventType);
+  }
+  console.log('handled awesome event');
+};
+function AnythingHandler(){}
+AnythingHandler.prototype = new Handler();
+AnythingHandler.prototype.execute = function(eventType){
+  console.log('handled any event');
+};
+var root = new Handler();
+root.addHandler(new CoolHandler());
+root.addHandler(new AwesomeHandler());
+root.addHandler(new AnythingHandler());
+root.execute(EventTypes.Cool);
+root.execute(EventTypes.Awesome);
+root.execute(EventTypes.Magic);</code></pre>
+<h3>Memento</h3>
+Memento's can be very useful in JavaScript, such as when storing the application state in localStorage to be loaded when the session starts again.
+In this case, we are simply saving a count variable, and restoring that count when we want. This causes the count to start all over again, before we call increment a few more times.
+<pre><code>function Saveable(){
+	this._count = 0;
+}
+Saveable.prototype.save = function(){
+	return new SavedState(this._count);
+};
+Saveable.prototype.restore = function(savedState){
+	this._count = savedState.getState();
+  console.log('count reset to ' + String(this._count));
+};
+Saveable.prototype.increment = function(){
+	++this._count;
+};
+Saveable.prototype.logValue = function(){
+	console.log(this._count);
+};
+function SavedState(count){
+	this._count = count;
+}
+SavedState.prototype.getState = function(){
+	return this._count;
+};
+// state manager holds reference to thing that can be saved, and acts on it
+function StateManager(){
+  this._saveable = new Saveable();
+}
+StateManager.prototype.getSavedState = function(){
+	return this._saveable.save();
+};
+StateManager.prototype.setSavedState = function(savedState){
+	this._saveable.restore(savedState);
+};
+StateManager.prototype.increment = function(){
+	this._saveable.increment();
+  this._saveable.logValue();
+};
+// logs 1,2,3
+var stateManager = new StateManager();
+for(var i = 0; i &lt; 3; ++i){
+	stateManager.increment();
+}
+// state is now 3
+var memento = stateManager.getSavedState();
+// logs 4,5,6
+for(var i = 0; i &lt; 3; ++i){
+	stateManager.increment();
+}
+// state restored to 3
+stateManager.setSavedState(memento);
+// logs 4,5,6 again
+for(var i = 0; i &lt; 3; ++i){
+	stateManager.increment();
+}</code></pre>
+<h3>Observer</h3>
+Observer is a competing pattern in JavaScript with pub/sub. Pub/sub is oftentimes somewhat easier to implement given the event-driven nature of JavaScript.
+Use observer over pub/sub when you want the handlers and subjects to be more closely integrated, when your events flow in one direction, or when you want shared functionality in all observing or observed objects.
+<pre><code>function Person(name){
+	this._observers = [];
+}
+Person.prototype.name = '';
+Person.prototype.setName = function(name){
+	this.name = name;
+  this._observers.forEach(function(observer){
+  	observer.update();
+  });
+};
+Person.prototype.observe = function(observer){
+	this._observers.push(observer);
+};
+function Observer(subject){
+	this._subject = subject;
+}
+Observer.prototype.update = function(){};
+function NameObserver(subject){
+	Observer.call(this, subject);
+}
+NameObserver.prototype = new Observer();
+NameObserver.prototype.update = function(){
+	console.log('new name: ' + this._subject.name);
+};
+function NameLengthObserver(subject){
+	Observer.call(this, subject);
+}
+NameLengthObserver.prototype = new Observer();
+NameLengthObserver.prototype.update = function(){
+	console.log('new length of name: ' + this._subject.name.length);
+};
+var person = new Person();
+person.observe(new NameObserver(person));
+person.observe(new NameLengthObserver(person));
+// all observers all called for each change
+// logs new name, then length of 8
+person.setName('deadpool');
+// logs new name, then length of 9
+person.setName('wolverine');</code></pre>
+<h3>Visitor</h3>
+The visitor pattern relies on polymorphism to cause correct handlers to be called. Since JavaScript does not have type-based method signatures, we instead create methods like so: 'visit' + elementTypeName, and call these on the visitor classes.
+This also means that we need to check that the methods exist, and log or throw an exception when there is no valid handler; and that we need to store the type names of each prototype, since JavaScript provides no easy way to see the most-derived type.
+This pattern allows us to handle each element in a list in a different way depending on its type, without having to add various method implementations to each one; and to handle each element in multiple ways depending on what visitor is visiting the element.
+<pre><code>function Visitor(){}
+Visitor.prototype.visit = function(element){
+  if(!(('visit' + element.typeName) in this)){
+  	return console.log('No handler for element of type ' + element.typeName);
+  }
+  // redirect to type-specific visit method
+  this[('visit' + element.typeName)](element);
+};
+function Element(){}
+Element.prototype.typeName = 'Element';
+Element.prototype.accept = function(visitor){
+	visitor.visit(this);
+};
+function CoolElement(){}
+CoolElement.prototype = new Element();
+CoolElement.prototype.typeName = 'CoolElement';
+function AwesomeElement(){}
+AwesomeElement.prototype = new Element();
+AwesomeElement.prototype.typeName = 'AwesomeElement';
+function CoolAwesomeVisitor(){}
+CoolAwesomeVisitor.prototype = new Visitor();
+// define type-specific visit methods to be called
+CoolAwesomeVisitor.prototype.visitCoolElement = function(element){
+	console.log('cool awesome visitor visiting cool element');
+};
+CoolAwesomeVisitor.prototype.visitAwesomeElement = function(element){
+	console.log('cool awesome visitor visiting awesome element');
+};
+function AwesomeVisitor(){}
+AwesomeVisitor.prototype = new Visitor();
+AwesomeVisitor.prototype.visitAwesomeElement = function(element){
+	console.log('awesome visitor visiting awesome element');
+};
+var visitors = [
+	new CoolAwesomeVisitor(),
+  new AwesomeVisitor()
+];
+var elements = [
+	new CoolElement(),
+  new AwesomeElement()
+];
+elements.forEach(function(element){
+	visitors.forEach(function(visitor){
+    element.accept(visitor);
+  });
+});</code></pre>
+<h3>Conclusion</h3>
+So that's all for patterns now! I think this is the longest post I've ever written, and I intend to keep expanding on this as a good resource.
+If you want to know more about these patterns in general, and what they're used for, I highly recommend <a href="http://sourcemaking.com">sourcemaking</a>.
+<h3>Notes</h3>
+Oftentimes, you'll see me wrap a class definition in a module like so:
+<pre><code>var Class = (function(){
+   var private = {};
+   function Class(){}
+   Class.prototype.setPrivate = function(value){
+       private[this] = value;
+   };
+   Class.prototype.getPrivate = function(value){
+      return private[this];
+   };
+})();</code>
+</pre>
+The reason for this is fairly intuitive. In JS, you have to choose between two things: inheritance, and data hiding. You can't have something akin to a private variable inherited by sub-classes. I'll show you two common patterns that illustrate this.
+<pre><code>function Class(){
+    var private;
+    this.setPrivate = function(value){
+        private = value;
+    };
+    this.getPrivate = function(value){
+        return private;
+    };
+}</code>
+</pre>
+Well... the variable <em>is</em> private. However, those getters and setters won't be inherited, because they're not on the prototype. You can technically solve this by calling the parent constructor with the sub-class as the caller, but I prefer the pattern I use.
+The other possibility is this:
+<pre><code>function Class(){}
+Class._private = null;
+this.setPrivate = function(value){
+    this._private = value;
+};
+this.getPrivate = function(value){
+    return this._private;
+};</code>
+</pre>
+This is a little better is some ways, and worse in others. Our data is no longer hidden, and we're relying on the developer, and naming convention to deter programmers from accessing it. The properties will be inherited from the prototype, however.
+Because of the reasons above, I tend to use the first pattern as a best practice, but depending on the situation any one of these may work fine.
+    </div>
+  </div>
+  <iframe src="/sections/footer.htm"></iframe>
+</body>
+
+</html>

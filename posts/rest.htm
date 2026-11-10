@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html style="cursor: crosshair;">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Representational State Transfer (REST) - Tech Blog</title>
+  <meta content="Microsoft FrontPage 4.0" name="GENERATOR">
+  <link rel="stylesheet" type="text/css" href="../assets/styles.css">
+  <link rel="stylesheet" type="text/css" href="../assets/cafes.css">
+  <link rel="stylesheet" type="text/css" href="../assets/blog.css">
+  <script src="../assets/scripts.js"></script>
+</head>
+
+<body style="cursor: crosshair" text="#f7f7ff" vlink="#0000bf" alink="#80c101" link="#00ff00" bgcolor="#000000"
+  background="../assets/bg22[1].jpg">
+  <table cellspacing="0" cellpadding="0" width="100%" border="0" hspace="0" vspace="0">
+    <tbody>
+      <tr>
+        <td width="12" height="12"></td>
+        <td width="100%">
+          <p align="center">
+            <font color="#0000bf"><a href="../index.htm"><img src="../assets/SClogo.gif" align="bottom" border="0" height="153"></a></font>
+          </p>
+        </td>
+        <td width="12" height="12"></td>
+      </tr>
+      <tr>
+        <td valign="top" align="left" width="12"><img style="cursor: crosshair" height="1" hspace="0" src="../assets/1x1.gif" width="12" align="bottom" border="0"></td>
+        <td>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle">&nbsp; <font face="Arial,Helvetica,sans-serif" color="#ffcc99" size="1">&nbsp;&nbsp;&nbsp; </font></td>
+                </tr>
+                <tr>
+                  <td height="11">
+                    <font face="Arial,Helvetica,sans-serif" color="#00ff66" size="1">| <a style="cursor: crosshair" title="House" href="../house.htm" target="_top"><u>House</u></a> | <a style="cursor: crosshair" title="Parking" href="../parking.htm" target="_top"><u>Parking</u></a> | <a style="cursor: crosshair" title="Events" href="../events.htm" target="_top"><u>Events</u></a> | <a style="cursor: crosshair" title="Detroit Events" href="../detroit-events.htm" target="_top"><u>Detroit Events</u></a> | <a style="cursor: crosshair" title="Cafes" href="../cafes.htm" target="_top"><u>Cafes</u></a> | <a style="cursor: crosshair" title="Blogs &amp; Updates" href="../links.htm" target="_top"><u>Blogs &amp; Updates</u></a> | <a style="cursor: crosshair" title="Wtf" href="../about.htm" target="_top"><u>About</u></a> | <a style="cursor: crosshair" title="Blog" href="../blog.htm" target="_top"><u>Blog</u></a> | |</font>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div align="center">
+            <table cellspacing="0" cellpadding="0" border="0" hspace="0" vspace="0">
+              <tbody>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img height="2" src="../assets/05f58020.gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td align="middle"><font face="Arial,Helvetica,sans-serif" color="#0000bf" size="1"><img style="cursor: crosshair" height="2" src="../assets/05f58020(1).gif" align="bottom" border="0"></font></td>
+                </tr>
+                <tr>
+                  <td height="11"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div align="center">
+    <div class="post-article">
+      <p class="back-link"><a href="../blog.htm">&larr; Back to Blog</a></p>
+      <p class="post-title">Representational State Transfer (REST)</p>
+      <p class="post-date">Feb 4, 2017</p>
+<h3>What is REST?</h3>
+REST is an architecture which describes a system that transfers generally non-static content between a client and server. This content is called a resource, and is always some uniquely identifiable "thing". RESTful services implemented on top of HTTP are a popular solution for web applications today.
+<h4>Representational</h4>
+REST is representational in the sense that every request must uniquely identify a resource. A resource is something which is uniquely identifiable. The meaning of uniquely identifiable can essentially be defined by the system, and is dependent on the level of granularity at which the system works.
+For instance, on one system, perhaps a hospital is a unique resource, but on another system, each of the hospital's buildings are considered independently, so you could not for instance request the completion date of the hospital, but only of a specific hospital building.
+<h4>State</h4>
+A RESTful service always returns stateful data. That is, it is returning the current or specified state of the specific resource, which is not necessarily and not usually composed of static data.
+For instance, suppose that our hospital added a new wing. The resource representing the hospital, if it is a correct stateful representation, would then reflect this new building. Any request made prior to the addition of the new wing would return it's current state - without the new wing.
+This should not be confused with the statelessness of the requests. A RESTful server maintains no data about the state of the client or its requests.
+<h4>Transfer</h4>
+Transfer of course refers to the movement of data between a client and server. Data can flow both ways in a RESTful service, which usually supports the CRUD operations in addition to request types like HTTP OPTION, etc.
+<h3>How did REST come about?</h3>
+<h4>First, HTTP</h4>
+The Hypertext Transfer Protocol, or HTTP, was the necessary precursor to what we consider a modern implementation of a RESTful service. HTTP provides a client-server architecture that focuses on text-based requests of documents. Because the text-based requests use URIs (unique resource identifiers), they are uniquely suited for use in a REST implementation, which is based on the concept of resources.
+HTTP was originally proposed by Tim Berners-Lee, as a document storage and retrieval system between remote clients and servers. The original HTTP had only one method, GET, meaning that it would not be as suitable for a REST implementation as it is today.
+HTTP soon added many methods, which made HTTP suited for a REST implementation. These methods included POST, PUT, and DELETE, which are used in today's RESTful services to represent update, create, and delete operations respectively.
+<h4>The Concept</h4>
+The concept was coined in 2000 for a PhD dissertation by Roy Fielding. The concepts behind REST were used as the backbone for the URI standard used in HTTP requests. HTTP was therefore RESTful in its initial implementation (v 1.1). The difference between this and modern REST concepts is that the resource can be many more things than simply a static HTML document.
+From this point, RESTful concepts were heavily adopted in the Web 2.0 age of asynchronous requests which loaded content in real-time into the browser. RESTful concepts enabled relatively simple and very consistent APIs to be created which abstracted this process heavily and eased implementation of complex applications handling asynchronous data requests.
+<h3>What makes something RESTful?</h3>
+There are five aspects necessary for a system to be considered RESTful, and one optional.
+<h4>Client-Server Interactions</h4>
+The architecture must start with a client-server model, where a single server hosts the unique resource, which a client may request.
+<h4>Stateless Requests</h4>
+This constraint means that the server cannot store session data from a client. Each request must include the session data necessary to execute the request.
+<h4>Cacheability</h4>
+Requests much be created in such a manner as to be identifiably cacheable or not. This allows an intermediate component to perform caching, without special system knowledge.
+<h4>Layered Architecture</h4>
+Each point of processing should not have awareness of other parts of the processing chain.
+<h4>Uniform Interface</h4>
+The system must define a consistent API, which decouples the requests from the implementation.
+<h4>Transfer of Logic</h4>
+An additional concept sometimes considered is the ability to transfer logic representations that can be executed on the client. This includes scripts, applets, etc. Many people are surprised to learn that this idea is part of the original PhD dissertation, and that implementation did not catch up to the possibility of the concepts for about a decade.
+<h3>What is the purpose of REST?</h3>
+The purpose of REST is to provide an architecture which creates sufficient abstraction in a large complex, distributed system of unique resources, so that a client-server model of resource access, alteration, and creation, can occur without significant complexity and overhead, even in a system of global scale such as the World Wide Web has become today.
+<h4>How is REST Used?</h4>
+REST today is the backbone of HTTP. All common HTTP requests are stateless, and conform to all the five criteria for a REST implementation.
+However, the more common modern usage of REST today is in the implementation of a RESTful service on top of HTTP. These services are used to provide a layer of abstraction from data access and representation, so that client code can easily manipulate the resulting structures and compose requests to interact with this data.
+Many times, the RESTful service is implemented as an API for simple external access, with an authentication scheme built on top of it. These heavily abstracted interfaces can allow several entirely tangent applications to consume and alter data in a manner consistent with their implementation, while maintaining a single distinct data source.
+It also can allow for the distribution of the total request load across several servers, which simply have to be aware of the API implementation and a data source.
+<h3>Conclusion</h3>
+REST is an important architectural model that defines itself as a set of five or six restrictions on top of an "unbounded" architecture. REST is not any one implementation, or any one concept or use case. It's a highly extensible architecture that drives the web as we know it today, but is independent of its implementation in HTTP.
+Many descriptions of REST are overly academic or too specific to a single implementation. I hope that I've provided a good resource on the fundamental meaning and purpose of REST, independent of HTTP, as well as its use in HTTP and web services today.
+Given that this is a complex topic, on which all information essentially traces itself back to that single dissertation, it's possible that some information may be inaccurate, so please let me know if you find these types of mistakes and they will be corrected immediately.
+    </div>
+  </div>
+  <iframe src="/sections/footer.htm"></iframe>
+</body>
+
+</html>
