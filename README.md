@@ -39,8 +39,14 @@ Two local scripts read the link pages and pull in what's new from each site:
 
 To run both at once and save the results:
 
+**Mac / Linux:**
 ```sh
 scripts/digest.sh
+```
+
+**Windows (PowerShell):**
+```powershell
+.\scripts\digest.ps1
 ```
 
 This writes two files to `digest/`, which git ignores:
@@ -48,19 +54,20 @@ This writes two files to `digest/`, which git ignores:
 - `digest/updates.md`: everything from `links.htm` posted in the last 2 days
 - `digest/events.md`: everything from `detroit-events.htm` happening in the next 2 weeks
 
-Pass a folder to write somewhere else, e.g. `scripts/digest.sh ~/Desktop`. Each run overwrites the previous files.
+To write somewhere else, pass a folder: `scripts/digest.sh ~/Desktop` on Mac/Linux, or `.\scripts\digest.ps1 C:\Users\You\Desktop` on Windows. Each run overwrites the previous files.
 
 **Downloaded the zip from the site?**
 
 1. Install [Node.js](https://nodejs.org/) 18 or newer.
 2. Unzip the download.
 3. Open a terminal in the unzipped `Kyle-s-Victorian-House-main` folder.
-4. Run `scripts/digest.sh` (Mac or Linux). On Windows, run the two scripts directly instead:
-
+4. **Mac / Linux only:** make the script executable:
    ```sh
-   node scripts/list-updates.mjs --days 2 > updates.md
-   node scripts/list-events.mjs > events.md
+   chmod +x scripts/digest.sh
    ```
+5. Run:
+   - **Mac / Linux:** `scripts/digest.sh`
+   - **Windows:** `.\scripts\digest.ps1`
 
 The scripts use the link lists from the copy of the site in the zip, so download a fresh zip to pick up new links.
 
