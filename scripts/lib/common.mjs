@@ -66,13 +66,16 @@ export const fmtDate = (d, opts = {}) =>
 const RETRY_STATUSES = new Set([404, 429, 500, 502, 503, 504]);
 const RETRIES = 5;
 
-export async function get(url, { browser = false } = {}) {
+/** GETs `url`, or POSTs it as a form when `form` ({key: value}) is given. */
+export async function get(url, { browser = false, form = null } = {}) {
   let lastErr;
   for (let attempt = 0; attempt <= RETRIES; attempt++) {
     if (attempt) await new Promise((r) => setTimeout(r, 500 * 2 ** (attempt - 1)));
     try {
       const res = await fetch(url, {
-        headers: { 'user-agent': browser ? BROWSER_UA : UA, accept: '*/*' },
+        method: form ? 'POST' : 'GET',
+        body: form ? new URLSearchParams(form) : undefined,
+        headers: { 'user-agent': browser ? BROWSER_UA : UA, accept: '*/*', 'accept-language': 'en-US,en;q=0.9' },
         redirect: 'follow',
         signal: AbortSignal.timeout(TIMEOUT_MS),
       });

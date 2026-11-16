@@ -26,7 +26,31 @@ const FEED_OVERRIDES = {
 };
 
 // Sites without any feed: return [{title, link, date}] from the page HTML.
+// Items are kept in page order (not re-sorted by date).
 const SCRAPERS = {
+  // Movies in theaters, most popular first. Each tile has the title, scores and
+  // "Opened Nov 13, 2026". Opening dates are in the text rather than `date`, so
+  // --days doesn't hide movies that opened a while ago.
+  'https://www.rottentomatoes.com/browse/movies_in_theaters/sort:popular': (html) => {
+    const items = [];
+    for (const tile of html.split('data-qa="discovery-media-list-item"').slice(1, 11)) {
+      const text = (re) => decode((tile.match(re) || [])[1] || '');
+      const title = text(/data-qa="discovery-media-list-item-title"[^>]*>([\s\S]*?)<\/rt-text>/);
+      const href = (tile.match(/href="(\/m\/[^"]+)"/) || [])[1];
+      if (!title || !href) continue;
+      const critics = text(/slot="criticsScore"[^>]*>([\s\S]*?)<\/rt-text>/);
+      const audience = text(/slot="audienceScore"[^>]*>([\s\S]*?)<\/rt-text>/);
+      const opened = text(/data-qa="discovery-media-list-item-start-date"[^>]*>([\s\S]*?)<\/rt-text>/);
+      const scores = [critics && `critics ${critics}`, audience && `audience ${audience}`].filter(Boolean).join(', ');
+      items.push({
+        title: [title, scores && `(${scores})`, opened && `— ${opened}`].filter(Boolean).join(' '),
+        link: `https://www.rottentomatoes.com${href}`,
+        date: null,
+      });
+    }
+    return items;
+  },
+
   'https://www.nachrichtenleicht.de/': (html) => {
     const seen = new Set();
     const items = [];
@@ -42,9 +66,37 @@ const SCRAPERS = {
 };
 
 // Sites that block automated requests; listed as unsupported instead of erroring.
-const UNSUPPORTED = {
-  'https://www.imdb.com/calendar/': 'IMDb blocks automated requests and has no feed',
-};
+const UNSUPPORTED = {};
+
+// YouTube's RSS endpoint sometimes returns 404 for a channel for minutes at a time,
+// longer than the retries in get() last. When that happens, read the channel's
+// /videos page instead: its embedded data lists recent uploads (not Shorts) with
+// relative dates like "5 days ago", which become approximate dates.
+const AGO_UNITS = { second: 1e3, minute: 6e4, hour: 36e5, day: 864e5, week: 6048e5, month: 2592e6, year: 31536e6 };
+
+async function youtubeVideos(channelUrl) {
+  const url = new URL(channelUrl);
+  url.pathname = url.pathname.replace(/\/(videos|featured|shorts|streams)?\/?$/, '') + '/videos';
+  const { text } = await get(url.href);
+  const data = text.match(/var ytInitialData = (\{[\s\S]*?\});<\/script>/);
+  if (!data) throw new Error('YouTube page format changed (no ytInitialData)');
+  const lockups = [];
+  const walk = (o) => {
+    if (Array.isArray(o)) return o.forEach(walk);
+    if (!o || typeof o !== 'object') return;
+    if (o.lockupViewModel) lockups.push(o.lockupViewModel);
+    Object.values(o).forEach(walk);
+  };
+  walk(JSON.parse(data[1]));
+  return lockups.map((l) => {
+    const ago = JSON.stringify(l.metadata).match(/"accessibilityLabel":"(\d+) (second|minute|hour|day|week|month|year)s? ago"/);
+    return {
+      title: l.metadata?.lockupMetadataViewModel?.title?.content || '(untitled)',
+      link: `https://www.youtube.com/watch?v=${l.contentId}`,
+      date: ago ? new Date(Date.now() - Number(ago[1]) * AGO_UNITS[ago[2]]) : null,
+    };
+  });
+}
 
 const opts = parseArgs({ limit: 5, days: 0 });
 
@@ -55,6 +107,7 @@ async function loadSource(src) {
     items = SCRAPERS[src.url]((await get(src.url)).text);
   } else {
     items = await loadFeed(src.url, FEED_OVERRIDES[src.url]).catch((e) => {
+      if (new URL(src.url).hostname.endsWith('youtube.com')) return youtubeVideos(src.url);
       if (e.message === 'no feed found') e.message += '; add one to FEED_OVERRIDES or SCRAPERS';
       throw e;
     });

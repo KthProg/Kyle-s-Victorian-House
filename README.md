@@ -50,6 +50,20 @@ This writes two files to `digest/`, which git ignores:
 
 Pass a folder to write somewhere else, e.g. `scripts/digest.sh ~/Desktop`. Each run overwrites the previous files.
 
+**Downloaded the zip from the site?**
+
+1. Install [Node.js](https://nodejs.org/) 18 or newer.
+2. Unzip the download.
+3. Open a terminal in the unzipped `Kyle-s-Victorian-House-main` folder.
+4. Run `scripts/digest.sh` (Mac or Linux). On Windows, run the two scripts directly instead:
+
+   ```sh
+   node scripts/list-updates.mjs --days 2 > updates.md
+   node scripts/list-events.mjs > events.md
+   ```
+
+The scripts use the link lists from the copy of the site in the zip, so download a fresh zip to pick up new links.
+
 ### Details
 
 Both scripts print Markdown. You need [Node.js](https://nodejs.org/) 18 or newer, and there's nothing to install. Helpers they share (fetching with retries, reading the link pages, parsing feeds) live in [scripts/lib/common.mjs](scripts/lib/common.mjs).
@@ -94,7 +108,12 @@ A run takes a few seconds because the script fetches every feed.
 2. For each link, it finds the site's RSS or Atom feed from the `<link rel="alternate">` tag on the linked page. YouTube channel pages advertise their video feed the same way.
 3. It downloads each feed and lists the newest items, grouped by the same sections as the page.
 
-YouTube's feed URLs sometimes return 404 for channels that are fine, so the script retries failed requests a few times with increasing waits.
+YouTube's feed URLs sometimes return 404 for a channel that's fine, sometimes for several minutes at a time. The script retries a few times with increasing waits. If the feed still fails, it reads the channel's Videos page instead, where dates like "5 days ago" become approximate dates and Shorts aren't included.
+
+Two sites have no feed and are read from their pages instead:
+
+- **Nachrichtenleicht:** the homepage headlines.
+- **Rotten Tomatoes:** the 10 most popular movies in theaters, with critic and audience scores and opening dates. These are always shown, even with `--days`.
 
 ### When a new link doesn't work
 
@@ -102,7 +121,7 @@ If a site shows a ⚠️ warning such as `no feed found`, open `scripts/list-upd
 
 - **`FEED_OVERRIDES`**: the site has a feed, but the linked page doesn't advertise it, or advertises the wrong one. Map the link to the feed URL. Try `/feed`, `/rss`, `/feed.xml` or `/index.xml` on the site, or look for an RSS icon.
 - **`SCRAPERS`**: the site has no feed at all. Add a function that pulls titles and links out of the page HTML (see the Nachrichtenleicht entry for an example).
-- **`UNSUPPORTED`**: the site blocks automated requests (like IMDb). Add a short reason and it's listed with a note instead of an error.
+- **`UNSUPPORTED`**: the site blocks automated requests (IMDb did, which is why the Film section now links to Rotten Tomatoes). Add a short reason and it's listed with a note instead of an error.
 
 Each key must exactly match the `href` used in `links.htm`.
 
@@ -137,7 +156,7 @@ node scripts/list-events.mjs --agenda > events.md
 
 A run takes about 5–10 seconds.
 
-In the default view, sites that were checked but have nothing coming up are collapsed into one line per section. Links that are Google searches (shops, community groups, cafes without a website) are listed at the end as not checked.
+In the default view, sites that were checked but have nothing coming up are collapsed into one line per section. Places that don't post events on a website (most of the shops, community groups and Cafe Watch entries) are also collapsed into one "check by hand" line per section, linking to their Instagram. Instagram can't be read by scripts without logging in, so those are links, not listings. If a link is ever a Google search instead of a real site, it's listed at the end as not checked.
 
 ### Where the events come from
 
@@ -145,21 +164,36 @@ Venues don't publish calendars in a standard way, so each link is matched to a s
 
 | Source type | Used for | How it works |
 | --- | --- | --- |
-| `feed` | Weekly Roundups | Recent posts from the site's RSS feed |
-| `jsonld` | Fox Theatre (313 Presents), The Fillmore | Standard schema.org event data embedded in the venue's page |
+| `feed` | Weekly Roundups, John K. King Books (blog) | Recent posts from the site's RSS feed |
+| `jsonld` | Fox Theatre (313 Presents), The Fillmore, Wise Guys Chess Club | Standard schema.org event data embedded in the venue's page |
 | `aeg` | Masonic Temple | The events file that AEG Presents' venue sites load |
 | `wpShows` | Detroit Opera | Performance dates on the site's WordPress "show" posts |
 | `tribe` | The Congregation | The WordPress "The Events Calendar" plugin's API |
 | `squarespace` | Vander Cafe | Squarespace's JSON view of an events page |
 | `espn` | Pistons, Red Wings, Tigers, Lions | ESPN's public team schedule API |
+| `michiganCentral` | Michigan Central Station | The month-by-month event cards the events page loads in the background |
+| `dso` | Detroit Symphony Orchestra | The season's performances from the DSO's calendar JSON |
+| `henryFord` | Greenfield Village / The Henry Ford | Reads the cards on the Henry Ford calendar, including multi-day exhibits |
+| `detroitHistorical` | Detroit Historical Society | Reads the title and `post-date` of each event card |
+| `letter27` | 27th Letter Books | Reads lines like **12 SEPT 7 PM:** EVENT NAME from the events page |
+| `purrfiction` | Purrfiction | Reads the event tiles ("Saturday, 11/28/26 from 10am-4pm") on its events page |
+| `paxahau` | Paxahau | Reads the event cards on the homepage |
 | `riverfront` | Detroit Riverfront Conservancy | Reads dates from the event URLs |
 | `redford` | Redford Theatre | Reads the titles and dates from the events page |
 | `meetup` | Every meetup.com link (automatic) | Event data embedded in the group's events page |
+| `noEvents` | Detroit Urban Artifacts, Good Knight Social, Strong Towns Detroit, Chinatown Vision, Little Asian Bites, Cafe Clark, Cass Cafe, Yellow Light, the Freight Yard | No events online; listed in the section's "check by hand" line, linking to `instagram` if set |
 | `unsupported` | See below | Shown with a note instead of events |
 
 Links that aren't in `SOURCES` and aren't on Meetup are tried two ways: first schema.org event data on the linked page, then an RSS feed.
 
-**Currently unsupported:** Metro Times and Axios Detroit (block automated requests), the Detroit Free Press (no public feed), the DIA (blocks automated requests), Michigan Central, the DSO (calendars built with JavaScript), Paxahau, Greenfield Village, the Detroit Historical Society and 27th Letter Books (no machine-readable dates).
+**Currently unsupported:**
+
+- **Block automated requests:** Metro Times, Axios Detroit and the DIA (dia.org returns 403 to scripts).
+- **No public feed:** the Detroit Free Press.
+
+Exhibits and other multi-day runs show as "Now through Jan 3" (or "Nov 20 – Jan 3" if they haven't started). In `--agenda` mode, runs that have already started are listed under **Ongoing** at the top. Permanent attractions ("Daily", "Now Open") are left out.
+
+Unsupported venues still appear in the output with a warning that links to their events page, so you can check them by hand. Set the link with the `page` field on the `unsupported` entry.
 
 ### Adding a new link
 

@@ -50,15 +50,43 @@ const SOURCES = {
     type: 'tribe', api: 'https://thecongregationdetroit.com/wp-json/tribe/events/v1/events',
   },
   'https://vanderdetroit.com/': { type: 'squarespace', page: 'https://vanderdetroit.com/events' },
-  'https://michigancentral.com/': { type: 'unsupported', reason: 'event dates are loaded by JavaScript' },
-  'https://dia.org/': { type: 'unsupported', reason: 'the DIA blocks automated requests' },
-  'https://www.dso.org/': { type: 'unsupported', reason: 'the calendar is loaded by JavaScript' },
-  'https://paxahau.com/': { type: 'unsupported', reason: 'shows link out to ticket sites without dates' },
-  'https://www.thehenryford.org/visit/venues/greenfield-village': {
-    type: 'unsupported', reason: 'the calendar has no machine-readable dates',
+  'https://michigancentral.com/': { type: 'michiganCentral' },
+  'https://paxahau.com/': { type: 'paxahau' },
+  // Unsupported venues: `page` is the events page to check by hand, shown in the warning.
+  'https://dia.org/': {
+    type: 'unsupported', reason: 'dia.org returns 403 to scripts', page: 'https://dia.org/events',
   },
-  'https://detroithistorical.org/': { type: 'unsupported', reason: 'the events page has no machine-readable dates' },
-  'https://27thletterbooks.com/': { type: 'unsupported', reason: 'the events page is free-form text' },
+  'https://www.dso.org/': { type: 'dso', json: 'https://www.dso.org/events-and-tickets/json/9/24797/1' },
+  'https://www.thehenryford.org/visit/venues/greenfield-village': {
+    type: 'henryFord', page: 'https://www.thehenryford.org/visit/things-to-do/calendar',
+  },
+  'https://detroithistorical.org/': { type: 'detroitHistorical', page: 'https://www.detroithistorical.org/events' },
+  'https://27thletterbooks.com/': { type: 'letter27', page: 'https://27thletterbooks.com/pages/events' },
+
+  'https://www.detroitriverfront.org/plan-your-visit/things-to-do/dequindre-cut-freight-yard-seasonal': {
+    type: 'noEvents', // seasonal; its events show up under Detroit Riverfront Conservancy
+  },
+
+  // Shops & Hangouts
+  'https://www.johnkingbooksdetroit.com/': { type: 'feed', feed: 'https://www.johnkingbooksdetroit.com/blog-feed.xml' },
+  'https://purrfiction.com/': { type: 'purrfiction' },
+  'https://www.wiseguyschessclub.com/': { type: 'jsonld', page: 'https://www.wiseguyschessclub.com/events' },
+
+  // Places that don't publish events on a website. They're listed together in one
+  // line per section, linking to `instagram` if given (Instagram can't be read by
+  // scripts without logging in, so it's a link to check by hand).
+  'https://www.detroiturbanartifacts.com/': {
+    type: 'noEvents', instagram: 'https://www.instagram.com/detroiturbanartifacts/',
+  },
+  'https://detroitchinatownvision.godaddysites.com/': {
+    type: 'noEvents', instagram: 'https://www.instagram.com/det313chinatownvision/',
+  },
+  'https://www.instagram.com/little.asian.bites/': { type: 'noEvents' },
+  'https://www.instagram.com/goodknightsocial/': { type: 'noEvents' },
+  'https://www.instagram.com/strongtownsdetroit/': { type: 'noEvents' },
+  'https://www.instagram.com/cafeclarkdetroit/': { type: 'noEvents' },
+  'https://www.casscafe.org/': { type: 'noEvents', instagram: 'https://www.instagram.com/casscafedetroit/' },
+  'https://www.yellowlightdetroit.com/': { type: 'noEvents', instagram: 'https://www.instagram.com/yellowlightdetroit/' },
 
   // Sports Schedules, via ESPN's public schedule API.
   'https://www.nba.com/pistons/schedule': { type: 'espn', path: 'basketball/nba/teams/det' },
@@ -71,7 +99,7 @@ const SOURCES = {
 function todayParts() {
   const p = Object.fromEntries(
     new Intl.DateTimeFormat('en-US', { timeZone: TZ, year: 'numeric', month: 'numeric', day: 'numeric' })
-      .formatToParts(new Date()).map((x) => [x.type, Number(x.value)])
+      .formatToParts(NOW).map((x) => [x.type, Number(x.value)])
   );
   return [p.year, p.month, p.day];
 }
@@ -107,10 +135,67 @@ function parseWhen(s) {
 const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august',
   'september', 'october', 'november', 'december'];
 
-/** Guess the year for a "November 21" with no year: the next occurrence, allowing recent past. */
+/** "Nov", "SEPT", "November" -> 11/9/11; null if not a month. */
+function monthNum(s) {
+  const i = MONTHS.findIndex((m) => m.startsWith(String(s).slice(0, 3).toLowerCase()));
+  return i < 0 ? null : i + 1;
+}
+const MONTH_RE = '(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\\.?';
+
+/**
+ * Start time from text like "7 PM", "6:30 PM", "2 - 5 PM", "11:00am - 12:00pm" or
+ * "9:30 a.m.-5 p.m.": the first number, with the first AM/PM after it. Null if none.
+ */
+function parseClock(text) {
+  // Only a dash or "to" may sit between the two times of a range, so a stray number
+  // like the "26" in "11/28/26 from 10am" isn't mistaken for the start time.
+  const t = String(text).match(/(\d{1,2})(?::(\d\d))?\s*(?:(?:[-–]|to)\s*\d{1,2}(?::\d\d)?\s*)?([ap])\.?m\b/i);
+  if (!t) return null;
+  return { h: (Number(t[1]) % 12) + (t[3].toLowerCase() === 'p' ? 12 : 0), mi: t[2] ? Number(t[2]) : 0 };
+}
+
+/** An event at `clock` (from parseClock) on the given day, or all-day if no clock. */
+function eventOn(y, mo, d, clock) {
+  return { start: detroitTime(y, mo, d, clock?.h ?? 0, clock?.mi ?? 0), allDay: !clock };
+}
+
+/**
+ * Date or date range like "Nov 16, 2026", "Oct 9-Nov 30, 2026", "Dec 5-6, 2026" or
+ * "October 18, 2026-January 3, 2027". Returns {start, end?} as all-day Dates, or null.
+ */
+function parseDateRange(text) {
+  const part = (s) => {
+    const m = s.match(new RegExp(`^\\s*(?:${MONTH_RE}\\s+)?(\\d{1,2})(?:,?\\s*(\\d{4}))?\\s*$`, 'i'));
+    return m && { mo: m[1] ? monthNum(m[1]) : null, d: Number(m[2]), y: m[3] ? Number(m[3]) : null };
+  };
+  const [a, b] = String(text).split(/\s*[-–]\s*/);
+  const start = part(a);
+  if (!start?.mo) return null;
+  const end = b ? part(b) : null;
+  if (b && !end) return null;
+  if (end) {
+    end.mo ??= start.mo;
+    end.y ??= start.y ?? inferYear(end.mo, end.d);
+    start.y ??= start.mo > end.mo ? end.y - 1 : end.y;
+  } else {
+    start.y ??= inferYear(start.mo, start.d);
+  }
+  return {
+    start: detroitTime(start.y, start.mo, start.d),
+    end: end ? detroitTime(end.y, end.mo, end.d) : undefined,
+  };
+}
+
+/**
+ * Guess the year for a "November 21" with no year: whichever year puts it closest to
+ * today. So in November, "January 5" is next year, but a stale "September 4" left on a
+ * page is this year (and gets filtered out as past) rather than next September.
+ */
 function inferYear(month, day) {
   const [y] = todayParts();
-  return detroitTime(y, month, day).getTime() < NOW - 60 * 864e5 ? y + 1 : y;
+  return [y - 1, y, y + 1].reduce((best, cand) =>
+    Math.abs(detroitTime(cand, month, day) - NOW) < Math.abs(detroitTime(best, month, day) - NOW) ? cand : best
+  );
 }
 
 // ---------- source types ----------
@@ -233,6 +318,171 @@ const LOADERS = {
     return { kind: 'events', items };
   },
 
+  // Michigan Central's events page loads one month at a time from WordPress's
+  // admin-ajax.php. Each card has <h4>November 22, 2026</h4><h5>Title</h5>,
+  // an optional time like "2 - 5 PM" in <b>, and a ticket link.
+  async michiganCentral() {
+    const months = [];
+    const [y, m] = todayParts();
+    for (let d = new Date(Date.UTC(y, m - 1, 1)); d.getTime() <= END; d.setUTCMonth(d.getUTCMonth() + 1)) {
+      months.push([d.getUTCFullYear(), d.getUTCMonth() + 1]);
+    }
+    const pages = await Promise.all(
+      months.map(([year, month]) =>
+        get('https://michigancentral.com/wp-admin/admin-ajax.php', {
+          browser: true,
+          form: { action: 'load_monthly_events', year, month },
+        })
+      )
+    );
+    const items = [];
+    for (const { text } of pages) {
+      for (const block of text.split('<div class="events_blk">').slice(1)) {
+        const field = (re) => decode((block.match(re) || [])[1] || '');
+        const date = field(/<h4>([\s\S]*?)<\/h4>/).match(new RegExp(`(${MONTHS.join('|')})\\s+(\\d{1,2}),?\\s+(\\d{4})`, 'i'));
+        if (!date) continue;
+        // "11 AM", "2 - 5 PM", "11 AM - 12 PM", "6:30 PM": the start is the first
+        // number, using the first AM/PM that follows it.
+        const time = field(/<b>([\s\S]*?)<\/b>/).match(/(\d{1,2})(?::(\d\d))?[^AP\d]*?(?:\d{1,2}(?::\d\d)?\s*)?([AP])\.?M/i);
+        const h = time ? (Number(time[1]) % 12) + (time[3].toUpperCase() === 'P' ? 12 : 0) : 0;
+        items.push({
+          title: field(/<h5>([\s\S]*?)<\/h5>/) || '(untitled)',
+          link: (block.match(/<a [^>]*href="([^"]+)"/) || [])[1] || 'https://michigancentral.com/events/',
+          start: detroitTime(
+            Number(date[3]), MONTHS.indexOf(date[1].toLowerCase()) + 1, Number(date[2]),
+            h, time?.[2] ? Number(time[2]) : 0
+          ),
+          allDay: !time,
+        });
+      }
+    }
+    return { kind: 'events', items };
+  },
+
+  // DSO's calendar JSON (a Tessitura ticketing feed). URL parts: /json/{mode of
+  // sale}/{promo source}/{only listed}. 9 is their web channel; the source code
+  // doesn't change the results; 1 hides unlisted performances. Returns the whole season.
+  async dso(src, cfg) {
+    const perfs = await getJSON(cfg.json, { browser: true });
+    return {
+      kind: 'events',
+      items: perfs
+        .filter((p) => !p.disable_in_listings)
+        .map((p) => ({
+          title: decode(p.title + (p.suffix ? ` ${p.suffix}` : '')),
+          link: p.event_url || p.book_url || src.url,
+          start: new Date(p.perf_date),
+          allDay: false,
+        })),
+    };
+  },
+
+  // The Henry Ford calendar (Henry Ford Museum + Greenfield Village). Each card has a
+  // title, then icon rows: calendar ("Nov 16, 2026", "Oct 9-Nov 30, 2026") and time
+  // ("6-9 p.m."). Permanent attractions ("Daily", "Now Open") are skipped.
+  async henryFord(src, cfg) {
+    const { text } = await get(cfg.page, { browser: true });
+    const items = [];
+    for (const card of text.split(/class="[^"]*image-card__title[^"]*"/).slice(1)) {
+      const title = decode(card.slice(card.indexOf('>') + 1, card.indexOf('<')));
+      const row = (icon) =>
+        decode((card.match(new RegExp(`svg--${icon}[\\s\\S]*?image-card__list-text">([^<]*)<`)) || [])[1] || '');
+      const range = parseDateRange(row('calendar'));
+      if (!title || !range) continue;
+      const href = (card.match(/href="(\/visit\/things-to-do\/calendar\/[^"]+)"/) || [])[1];
+      const link = href ? new URL(href, cfg.page).href : cfg.page;
+      if (range.end) {
+        // Multi-day exhibits: the time row is daily opening hours, so show the dates only.
+        items.push({ title, link, start: range.start, end: range.end, allDay: true });
+      } else {
+        const s = range.start;
+        const [y, mo, d] = s.toLocaleDateString('en-CA', { timeZone: TZ }).split('-').map(Number);
+        items.push({ title, link, ...eventOn(y, mo, d, parseClock(row('time'))) });
+      }
+    }
+    return { kind: 'events', items };
+  },
+
+  // 27th Letter Books: <strong>12 SEPT 7 PM:</strong> EVENT NAME<br/>. The bold part
+  // can also say "7 PM DOORS", "6 PM AT DETROIT PUBLIC LIBRARY" or "EVENING".
+  async letter27(src, cfg) {
+    const { text } = await get(cfg.page, { browser: true });
+    const items = [];
+    const re = /<strong>([^<]*)<\/strong>([\s\S]*?)(?=<br|<strong>|<\/p>)/g;
+    for (const m of text.matchAll(re)) {
+      const head = decode(m[1]).replace(/:\s*$/, '');
+      const when = head.match(new RegExp(`^(\\d{1,2})\\s+${MONTH_RE}\\s*(.*)$`, 'i'));
+      const title = decode(m[2]);
+      if (!when || !title) continue;
+      const mo = monthNum(when[2]);
+      const clock = parseClock(when[3]);
+      // Keep any extra detail, e.g. "AT DETROIT PUBLIC LIBRARY" or "DOORS".
+      const extra = when[3].replace(/^\s*\d{1,2}(?::\d\d)?\s*[ap]\.?m\.?\s*/i, '').trim();
+      items.push({
+        title: extra ? `${title} (${extra.toLowerCase()})` : title,
+        link: cfg.page,
+        ...eventOn(inferYear(mo, Number(when[1])), mo, Number(when[1]), clock),
+      });
+    }
+    return { kind: 'events', items };
+  },
+
+  // Detroit Historical Society (Drupal): <h3 class="post-title"><a href="/events/...">
+  // and <p class="post-date">November 17, 2026, 7:00 - 8:00pm</p>.
+  async detroitHistorical(src, cfg) {
+    const { text } = await get(cfg.page, { browser: true });
+    const items = [];
+    const re = /<h3 class="post-title">\s*<a href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?class="post-date[^"]*">([^<]*)</g;
+    for (const m of text.matchAll(re)) {
+      const when = decode(m[3]).match(new RegExp(`${MONTH_RE}\\s+(\\d{1,2}),\\s*(\\d{4}),?\\s*(.*)`, 'i'));
+      if (!when) continue;
+      items.push({
+        title: decode(m[2]),
+        link: new URL(m[1], cfg.page).href,
+        ...eventOn(Number(when[3]), monthNum(when[1]), Number(when[2]), parseClock(when[4])),
+      });
+    }
+    return { kind: 'events', items };
+  },
+
+  // PurrFiction's events page (an Ecwid/Square-style tile list): each tile has
+  // class="ins-tile__location-title"><p>Title</p> and
+  // class="ins-tile__subheading"><p>Saturday, 11/28/26 from 10am-4pm</p>.
+  async purrfiction() {
+    const page = 'https://purrfiction.com/events';
+    const { text } = await get(page, { browser: true });
+    const items = [];
+    const re = /ins-tile__location-title[^>]*>([\s\S]*?)<\/div>[\s\S]*?ins-tile__subheading[^>]*>([\s\S]*?)<\/div>/g;
+    for (const m of text.matchAll(re)) {
+      const when = decode(m[2]);
+      const d = when.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})\b/);
+      if (!d) continue;
+      const y = d[3].length === 2 ? 2000 + Number(d[3]) : Number(d[3]);
+      items.push({ title: decode(m[1]), link: page, ...eventOn(y, Number(d[1]), Number(d[2]), parseClock(when)) });
+    }
+    return { kind: 'events', items };
+  },
+
+  // Paxahau's homepage is its event list: each card has
+  // <div class="event-date">November 21, 2026</div> and <a href="/events/..." class="events-title">.
+  async paxahau() {
+    const { text } = await get('https://paxahau.com/', { browser: true });
+    const items = [];
+    for (const card of text.split('class="events-collection-item').slice(1)) {
+      const date = decode((card.match(/class="event-date">([^<]+)</) || [])[1] || '')
+        .match(new RegExp(`(${MONTHS.join('|')})\\s+(\\d{1,2}),?\\s+(\\d{4})`, 'i'));
+      const title = card.match(/<a href="([^"]+)" class="events-title">([\s\S]*?)<\/a>/);
+      if (!date || !title) continue;
+      items.push({
+        title: decode(title[2]),
+        link: new URL(title[1], 'https://paxahau.com/').href,
+        start: detroitTime(Number(date[3]), MONTHS.indexOf(date[1].toLowerCase()) + 1, Number(date[2])),
+        allDay: true,
+      });
+    }
+    return { kind: 'events', items };
+  },
+
   // Redford Theatre: <h3>Title</h3><p>Friday, November 13 and Saturday, November 14, 2026 at 8:00 PM</p>
   async redford(src) {
     const { text } = await get('https://redfordtheatre.com/events/', { browser: true });
@@ -277,7 +527,9 @@ function jsonLdEvents(html, pageUrl) {
     Object.values(o).forEach(walk);
   };
   for (const m of html.matchAll(/<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)) {
-    try { walk(JSON.parse(m[1])); } catch { /* ignore malformed blocks */ }
+    // Sites often leave raw tabs/newlines inside JSON strings, which JSON.parse
+    // rejects but browsers tolerate; replacing them with spaces is harmless.
+    try { walk(JSON.parse(m[1].replace(/[\u0000-\u001f]+/g, ' '))); } catch { /* ignore malformed blocks */ }
   }
   return items;
 }
@@ -293,23 +545,37 @@ async function loadGeneric(src) {
   }
 }
 
+/** Sort by start time, treating runs that already started as "today" and ordering those by end date. */
+function byWhen(a, b) {
+  const key = (e) => Math.max(e.start.getTime(), e.end ? START_OF_TODAY.getTime() : -Infinity);
+  return key(a) - key(b) || (a.end?.getTime() ?? 0) - (b.end?.getTime() ?? 0);
+}
+
 async function loadSource(src) {
   const cfg = SOURCES[src.url] || (new URL(src.url).hostname.endsWith('meetup.com') ? { type: 'meetup' } : null);
-  if (cfg?.type === 'unsupported') return { ...src, error: `Not supported: ${cfg.reason}`, kind: 'events', items: [] };
+  if (cfg?.type === 'noEvents') return { ...src, kind: 'none', instagram: cfg.instagram, items: [] };
+  if (cfg?.type === 'unsupported') {
+    const error = `Not supported: ${cfg.reason}.` + (cfg.page ? ` Check the events page: ${cfg.page}` : '');
+    return { ...src, eventsPage: cfg.page, error, kind: 'events', items: [] };
+  }
   const res = cfg ? await LOADERS[cfg.type](src, cfg) : await loadGeneric(src);
   let items = res.items;
   if (res.kind === 'events') {
-    // Dedupe, keep events in the window (all-day events count for all of today), sort by time.
+    // Dedupe, keep events in the window (all-day events count for all of today; multi-day
+    // events count until their last day), sort by time.
     const seen = new Set();
     items = items
       .filter((e) => e.start && !isNaN(e.start))
-      .filter((e) => (e.allDay ? e.start.getTime() >= START_OF_TODAY.getTime() : e.start.getTime() >= NOW))
+      .filter((e) => {
+        const last = (e.end ?? e.start).getTime();
+        return e.allDay ? last >= START_OF_TODAY.getTime() : last >= NOW;
+      })
       .filter((e) => e.start.getTime() <= END)
       .filter((e) => {
         const key = `${e.title}|${e.start.toISOString()}`;
         return seen.has(key) ? false : seen.add(key);
       })
-      .sort((a, b) => a.start - b.start);
+      .sort(byWhen);
   }
   return { ...src, kind: res.kind, items: items.slice(0, opts.limit) };
 }
@@ -322,7 +588,10 @@ const results = await mapLimit(sources, 8, (s) =>
   loadSource(s).catch((e) => ({ ...s, error: e.message, kind: 'events', items: [] }))
 );
 
+const isOngoing = (e) => e.end && e.start.getTime() < START_OF_TODAY.getTime();
+const fmtShort = (d) => fmtDate(d, { year: undefined });
 const fmtWhen = (e) => {
+  if (e.end) return isOngoing(e) ? `Now through ${fmtShort(e.end)}` : `${fmtShort(e.start)} – ${fmtShort(e.end)}`;
   const day = fmtDate(e.start, { weekday: 'short', year: undefined });
   if (e.allDay) return day;
   const time = e.start.toLocaleTimeString('en-US', { timeZone: TZ, hour: 'numeric', minute: '2-digit' });
@@ -347,16 +616,25 @@ if (opts.agenda) {
   const events = results
     .filter((r) => r.kind === 'events')
     .flatMap((r) => r.items.map((e) => ({ ...e, source: r.name })))
-    .sort((a, b) => a.start - b.start);
+    .sort(byWhen);
+  const titleOf = (e) => `${e.link ? `[${md(e.title)}](${e.link})` : md(e.title)} · _${md(e.source)}_`;
+  // Exhibits and other runs that have already started go in their own section up top.
+  const ongoing = events.filter(isOngoing);
+  if (ongoing.length) {
+    out.push('', '## Ongoing', '');
+    for (const e of ongoing) out.push(`- **Through ${fmtShort(e.end)}** — ${titleOf(e)}`);
+  }
   let day = null;
-  for (const e of events) {
+  for (const e of events.filter((e) => !isOngoing(e))) {
     const d = fmtDate(e.start, { weekday: 'long', month: 'long', year: undefined });
     if (d !== day) {
       day = d;
       out.push('', `## ${d}`, '');
     }
-    const time = e.allDay ? 'All day' : e.start.toLocaleTimeString('en-US', { timeZone: TZ, hour: 'numeric', minute: '2-digit' });
-    out.push(`- **${time}** — ${e.link ? `[${md(e.title)}](${e.link})` : md(e.title)} · _${md(e.source)}_`);
+    const time = e.end
+      ? `Through ${fmtShort(e.end)}`
+      : e.allDay ? 'All day' : e.start.toLocaleTimeString('en-US', { timeZone: TZ, hour: 'numeric', minute: '2-digit' });
+    out.push(`- **${time}** — ${titleOf(e)}`);
   }
   if (!events.length) out.push('', '_No events found._');
   const articles = results.filter((r) => r.kind === 'articles' && r.items.length);
@@ -379,15 +657,21 @@ if (opts.agenda) {
     const quietPosts = inSection.filter((r) => !r.error && !r.items.length && r.kind === 'articles');
     if (quietEvents.length) out.push('', `_No events in the next ${opts.days} days: ${quietEvents.map(link).join(', ')}_`);
     if (quietPosts.length) out.push('', `_No posts in the last ${ARTICLE_DAYS} days: ${quietPosts.map(link).join(', ')}_`);
+    const offline = inSection.filter((r) => r.kind === 'none');
+    if (offline.length) {
+      const ig = (r) => `[${md(r.name)}](${r.instagram || r.url})`;
+      out.push('', `_No event listings online, check by hand: ${offline.map(ig).join(', ')}_`);
+    }
   }
 }
 
-out.push('', '---', '');
+const footer = [];
 const errors = results.filter((r) => r.error);
 if (opts.agenda && errors.length) {
-  out.push(`_Couldn't check: ${errors.map((r) => md(r.name)).join(', ')}._`, '');
+  footer.push(`_Couldn't check: ${errors.map((r) => md(r.name)).join(', ')}._`);
 }
 if (searches.length) {
-  out.push(`_Not checked (these links are Google searches): ${searches.map((s) => md(s.name)).join(', ')}._`);
+  footer.push(`_Not checked (these links are Google searches): ${searches.map((s) => md(s.name)).join(', ')}._`);
 }
+if (footer.length) out.push('', '---', '', footer.join('\n\n'));
 console.log(out.join('\n'));
